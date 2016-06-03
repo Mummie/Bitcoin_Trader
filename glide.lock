@@ -1,0 +1,10 @@
+hash: f68439268862452936eea7a1cd0f2fd30012091582c8a55534f10e6ebd4b479f
+updated: 2016-05-18T10:48:20.556742597-04:00
+imports:
+- name: github.com/ajph/bitstamp-go
+  version: 23a1fe7e844e3ee8974786eab67bc45073600460
+- name: github.com/ivanvanderbyl/mtgox
+  version: 49ffef801dd513150b28850a86f551f6d5c9981f
+- name: github.com/toorop/go-bittrex
+  version: 6def4c6a7b09054b23d3aad88bff48dacf6fc89b
+devImports: []
