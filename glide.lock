@@ -1,10 +1,18 @@
 hash: f68439268862452936eea7a1cd0f2fd30012091582c8a55534f10e6ebd4b479f
-updated: 2016-05-18T10:48:20.556742597-04:00
+updated: 2016-06-04T13:41:49.8243757-04:00
 imports:
 - name: github.com/ajph/bitstamp-go
   version: 23a1fe7e844e3ee8974786eab67bc45073600460
+- name: github.com/bitfinexcom/bitfinex-api-go
+  version: df0ffff2179fb9c1c812f39da9e2b7e2b90b7a74
+  subpackages:
+  - github.com\bitfinexcom\bitfinex-api-go
 - name: github.com/ivanvanderbyl/mtgox
   version: 49ffef801dd513150b28850a86f551f6d5c9981f
 - name: github.com/toorop/go-bittrex
   version: 6def4c6a7b09054b23d3aad88bff48dacf6fc89b
+- name: golang.org/x/net
+  version: c4c3ea71919de159c9e246d7be66deb7f0a39a58
+  subpackages:
+  - golang.org\x\net\websocket
 devImports: []
