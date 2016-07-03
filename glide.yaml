@@ -3,4 +3,3 @@ import:
 - package: github.com/toorop/go-bittrex
 - package: github.com/ajph/bitstamp-go
 - package: github.com/ivanvanderbyl/mtgox
-- package: github.com/labstack/echo
