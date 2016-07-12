@@ -3,9 +3,11 @@ package trade
 import (
 	//"github.com/bitfinexcom/bitfinex-api-go"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 	//"os"
 )
 
@@ -21,13 +23,13 @@ type TickerData struct {
 }
 
 // GET gets tick data or symbol
-func Ticker(symbol string) string {
+func GetTickData(symbol string) (tick TickerData, err error) {
 
 	req, err := http.NewRequest("GET", "https://api.bitfinex.com/v1/pubticker/"+symbol, nil)
 
 	if err != nil {
 
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -35,14 +37,43 @@ func Ticker(symbol string) string {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return TickerData{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return TickerData{}, err
 	}
 
-	return string(body)
+	err = json.Unmarshal(body, &tick)
+
+	if err != nil {
+		return TickerData{}, err
+	}
+
+	return tick, nil
+
+}
+
+func RunTicker(symbol string) (tick TickerData, err error) {
+	timeout := time.After(30 * time.Second)
+	processing := time.Tick(500 * time.Millisecond)
+	// Keep trying until we're timed out or got a result or got an error
+	for {
+		select {
+		// Got a timeout! fail with a timeout error
+		case <-timeout:
+			return TickerData{}, errors.New("timed out")
+		// Got a tick, we should check on doSomething()
+		case <-processing:
+			tick, err = GetTickData(symbol)
+			if err != nil {
+				return TickerData{}, err
+			}
+			log.Print("Tick Returns:  ")
+			return tick, nil
+
+		}
+	}
 }

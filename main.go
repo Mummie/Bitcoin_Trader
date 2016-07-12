@@ -16,9 +16,14 @@ func main() {
 
 	log.Println("Starting Bitcoin Trader...")
 
-	tick := trade.Ticker("BTCUSD")
+	for {
+		tick, err := trade.RunTicker("BTCUSD")
 
-	log.Println(tick)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println(tick)
+	}
 
 	pair, err := trade.PairStats("BTCUSD")
 
