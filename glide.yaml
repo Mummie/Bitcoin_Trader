@@ -2,4 +2,3 @@ package: bitcoin_trader
 import:
 - package: github.com/toorop/go-bittrex
 - package: github.com/ajph/bitstamp-go
-- package: github.com/ivanvanderbyl/mtgox
