@@ -4,7 +4,7 @@ import (
 	//"github.com/bitfinexcom/bitfinex-api-go"
 	"log"
 
-	"github.com/Bitcoin_Trader/market_feed"
+	"github.com/Bitcoin_Trader/marketfeed"
 	//"os"
 )
 
@@ -21,7 +21,7 @@ func main() {
 
 	for {
 
-		tick, err := market_feed.RunTicker("BTCUSD")
+		tick, err := marketfeed.RunTicker("BTCUSD")
 
 		if err != nil {
 			log.Fatal(err)
@@ -29,7 +29,7 @@ func main() {
 		log.Println(tick)
 	}
 
-	pair, err := market_feed.PairStats("BTCUSD")
+	pair, err := marketfeed.PairStats("BTCUSD")
 
 	if err != nil {
 		log.Fatal(err)
