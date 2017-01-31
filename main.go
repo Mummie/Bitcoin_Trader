@@ -2,7 +2,7 @@ package main
 
 import (
 	//"github.com/bitfinexcom/bitfinex-api-go"
-	"github.com/Mummie/Bitcoin_Trader/market_feed/trade"
+	"github.com/Mummie/Bitcoin_Trader/marketfeed"
 	"log"
 	//"os"
 )
@@ -16,16 +16,15 @@ func main() {
 
 	log.Println("Starting Bitcoin Trader...")
 
-	for {
-		tick, err := trade.RunTicker("BTCUSD")
+		tick, err := marketfeed.RunTicker("BTCUSD")
 
 		if err != nil {
 			log.Println(err)
 		}
 		log.Println(tick)
-	}
+	
 
-	pair, err := trade.PairStats("BTCUSD")
+	pair, err := marketfeed.PairStats("BTCUSD")
 
 	if err != nil {
 		log.Fatal(err)
