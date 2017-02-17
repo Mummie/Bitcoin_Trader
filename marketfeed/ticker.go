@@ -4,34 +4,17 @@ import (
 	//"github.com/bitfinexcom/bitfinex-api-go"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"os"
-	"os/signal"
 	"sync"
 	"time"
-
-	"github.com/gorilla/websocket"
 	//"os"
 )
 
 // BTC/day = [(BitcoinPrice) / (difficulty * 2^32) / 3600]
 // ex. let o = 24 * 2^32 / 3600
-
-type TickerData struct {
-	Mid       json.Number `json:"mid"`
-	Bid       json.Number `json:"bid"`
-	Ask       json.Number `json:"ask"`
-	LastPrice json.Number `json:"last_price"`
-	Low       json.Number `json:"low"`
-	High      json.Number `json:"high"`
-	Volume    json.Number `json:"volume"`
-	Timestamp json.Number `json:"timestamp"`
-}
 
 // @todo: make historic function to download csv data, parse data and return as slice
 // Trade data is available as CSV, delayed by approx. 15 minutes. It will return the 2000 most recent trades.
@@ -56,108 +39,83 @@ type TickerData struct {
 // GET gets tick data or symbol
 // change func to be dynamic for making api request to url and return json response []byte
 
-func SendBlockChainData() {
-	var addr = flag.String("addr", "localhost:8080", "http service address")
-	flag.Parse()
-	log.SetFlags(0)
+type TickerData struct {
+	Mid       float64 `json:"mid,string"`
+	Bid       float64 `json:"bid,string"`
+	Ask       float64 `json:"ask,string"`
+	LastPrice float64 `json:"last_price,string"`
+	Low       float64 `json:"low,string"`
+	High      float64 `json:"high,string"`
+	Volume    float64 `json:"volume,string"`
+	Timestamp float64 `json:"timestamp,string"`
+}
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/echo"}
-	log.Printf("connecting to %s", u.String())
-
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer c.Close()
-
-	done := make(chan struct{})
-
-	go func() {
-		defer c.Close()
-		defer close(done)
-		for {
-			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-			log.Printf("recv: %s", message)
-		}
-	}()
-
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
-		case <-interrupt:
-			log.Println("interrupt")
-			// To cleanly close a connection, a client should send a close
-			// frame and wait for the server to close the connection.
-			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				log.Println("write close:", err)
-				return
-			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-			}
-			c.Close()
-			return
-		}
-	}
+type Trade struct {
+	Timestamp int64   `json:"timestamp"`
+	Tid       int64   `json:"tid"`
+	Price     float64 `json:"price,string"`
+	Amount    float64 `json:"amount,string"`
+	Exchange  string  `json:"exchange"`
+	Type      string  `json:"type"`
 }
 
 func getJSONData(url string) (body []byte, err error) {
-	req, err := http.NewRequest("GET", url, nil)
+	var netClient = &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	resp, err := netClient.Get(url)
 
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
+
 	return body, nil
 }
 
-func GetTickDataBySymbol(symbol string) (tick TickerData, err error) {
+// GetTickData gets tick data or symbol
+func GetTickData(symbol string) (tick *TickerData, err error) {
+
 	res, err := getJSONData("https://api.bitfinex.com/v1/pubticker/" + symbol)
 	if err != nil {
-		return TickerData{}, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(res, &tick)
 
 	if err != nil {
-		return TickerData{}, err
+		return nil, err
 	}
 
 	return tick, nil
 
 }
 
-func RunTicker(symbol string) (tick TickerData, err error) {
+// GetTradesData will return a slice of Trade data by the given day
+func GetTradesData(symbol string) (trade []Trade, err error) {
+
+	res, err := getJSONData("https://api.bitfinex.com/v1/trades/btcusd" + symbol)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(res, &trade)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return trade, nil
+}
+
+func RunTicker(symbol string) (tick *TickerData, err error) {
 	timeout := time.After(30 * time.Second)
 	processing := time.Tick(500 * time.Millisecond)
 	// Keep trying until we're timed out or got a result or got an error
@@ -165,12 +123,12 @@ func RunTicker(symbol string) (tick TickerData, err error) {
 		select {
 		// Got a timeout! fail with a timeout error
 		case <-timeout:
-			return TickerData{}, errors.New("timed out")
+			return nil, errors.New("timed out")
 		// Got a tick, we should check on doSomething()
 		case <-processing:
-			tick, err = GetTickDataBySymbol(symbol)
+			tick, err = GetTickData(symbol)
 			if err != nil {
-				return TickerData{}, err
+				return nil, err
 			}
 			log.Print("Tick Returns:  ")
 			return tick, nil
