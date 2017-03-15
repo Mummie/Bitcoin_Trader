@@ -1,18 +1,17 @@
 package main
 
-import (
-	//"github.com/bitfinexcom/bitfinex-api-go"
+import
+//"github.com/bitfinexcom/bitfinex-api-go"
 
-	"log"
-	"os"
-	"os/signal"
-	"runtime"
-	"sync"
-	"syscall"
+(
+	"fmt"
+	"time"
 
 	"github.com/Bitcoin_Trader/marketfeed"
-	//"os"
+	"github.com/Bitcoin_Trader/server"
 )
+
+//"os"
 
 type Config struct {
 	API_KEY    string
@@ -39,93 +38,153 @@ type Config struct {
 // log.Println(pair)
 
 const (
-	maxGoRoutines = 1
+	maxGoRoutines = 3
 )
 
 func main() {
 
-	runtime.GOMAXPROCS(int(float64(runtime.NumCPU()) * 1.25))
+	resc, errc := make(chan []*marketfeed.HistoricTradeData), make(chan error)
 
-	log.Println("Starting application...")
+	tickChan, errT := make(chan []*marketfeed.TickerData), make(chan error)
+	chinaTick := make(chan *marketfeed.BTCChinaTick)
 
-	log.Println("Starting Bitcoin Trader...")
+	go server.RunHTTPServer()
 
-	log.Println("Starting HTTP Server")
+	for tasks := 0; tasks <= 3; tasks++ {
+		// go marketfeed.RunTickerSocket()
 
-	/*
-	 * When SIGINT or SIGTERM is caught write to the quitChannel
-	 */
-	quitChannel := make(chan os.Signal)
-	errChannel := make(chan error, 1)
-	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
+		go func() {
 
-	shutdownChannel := make(chan bool)
-	waitGroup := &sync.WaitGroup{}
-
-	waitGroup.Add(maxGoRoutines)
-
-	/*
-	 * Create a goroutine that does imaginary work
-	 */
-	for i := 0; i < maxGoRoutines; i++ {
-		go func(shutdownChannel chan bool, errChannel chan error, waitGroup *sync.WaitGroup, id int) {
-			log.Println("Starting work goroutine...")
-			//defer waitGroup.Done()
-
-			for {
-				/*
-				 * Listen on channels for message.
-				 */
-				select {
-				case _ = <-shutdownChannel:
-					log.Printf("Received shutdown on goroutine %d\n", id)
-					return
-				case _ = <-errChannel:
-					log.Println(errChannel)
-					return
-
-				default:
-				}
-
-				// Do some hard work here!
-				_, err := marketfeed.GetHistoricTrades(waitGroup, "bitfinexUSD")
-
-				if err != nil {
-					errChannel <- err
-				}
-
+			tickData, err := marketfeed.RunTicker("btcUSD")
+			if err != nil {
+				errT <- err
+				return
 			}
-		}(shutdownChannel, errChannel, waitGroup, i)
+
+			chinatick, err := marketfeed.GetBTCChinaTickData()
+			if err != nil {
+				errT <- err
+				return
+			}
+
+			tickChan <- tickData
+			chinaTick <- chinatick
+		}()
+
+		// go func() {
+		// 	trades, err := marketfeed.GetHistoricTrades("bitfinexUSD")
+		// 	if err != nil {
+		// 		errc <- err
+		// 		return
+		// 	}
+		//
+		// 	resc <- trades
+		// }()
+
+		for i := 0; i <= 1; i++ {
+			select {
+			case res := <-resc:
+				fmt.Println(&res)
+			case err := <-errc:
+				fmt.Println("HISTORICAL DATA ERROR: ", err)
+			case tick := <-chinaTick:
+				fmt.Printf("BTC CHINA: %+v", tick)
+			case ticker := <-tickChan:
+				var highestBid float64
+				var h float64
+				var hDiff float64
+				for i, t := range ticker {
+					if i == 1 {
+						highestBid = t.Bid
+						h = t.High
+					}
+					if t.Bid >= highestBid {
+						highestBid = t.Bid
+					}
+
+					if t.High >= h {
+						h = t.High
+					}
+
+					hDiff = highestBid - h
+				}
+				fmt.Printf("\rHIGHEST BID: %+v HIGH BID DIFF: %f", highestBid, hDiff)
+
+			case err := <-errT:
+				fmt.Println("TICKER ERROR: ", err)
+				continue
+			}
+		}
+		time.Sleep(5 * time.Second)
+		tasks++
 	}
 
-	/*
-	 * Wait until we get the quit message
-	 */
-	<-errChannel
-
-	log.Println("Received quit. Sending shutdown and waiting on goroutines...")
-
-	for i := 0; i < maxGoRoutines; i++ {
-		shutdownChannel <- true
-	}
-
-	/*
-	 * Block until wait group counter gets to zero
-	 */
-	waitGroup.Wait()
-	log.Println("Done.")
+	// runtime.GOMAXPROCS(int(float64(runtime.NumCPU()) * 1.25))
+	//
+	// log.Println("Starting application...")
+	//
+	// log.Println("Starting Bitcoin Trader...")
+	//
+	// /*
+	//  * When SIGINT or SIGTERM is caught write to the quitChannel
+	//  */
+	// quitChannel := make(chan os.Signal)
+	// errChannel := make(chan error, 1)
+	// signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
+	//
+	// shutdownChannel := make(chan bool)
+	// waitGroup := &sync.WaitGroup{}
+	//
+	// waitGroup.Add(maxGoRoutines)
+	//
+	// /*
+	//  * Create a goroutine that does imaginary work
+	//  */
+	// for i := 0; i < maxGoRoutines; i++ {
+	// 	go func(shutdownChannel chan bool, errChannel chan error, waitGroup *sync.WaitGroup, id int) {
+	// 		log.Println("Starting work goroutine...")
+	// 		//defer waitGroup.Done()
+	//
+	// 		for {
+	// 			/*
+	// 			 * Listen on channels for message.
+	// 			 */
+	// 			select {
+	// 			case _ = <-shutdownChannel:
+	// 				log.Printf("Received shutdown on goroutine %d\n", id)
+	// 				return
+	// 			case _ = <-errChannel:
+	// 				log.Println(errChannel)
+	// 				return
+	//
+	// 			default:
+	// 			}
+	//
+	// 			// Do some hard work here!
+	// 			_, err := marketfeed.GetHistoricTrades(waitGroup, "bitfinexUSD", "okcoinCNY", "coinbaseUSD")
+	//
+	// 			if err != nil {
+	// 				errChannel <- err
+	// 			}
+	//
+	// 		}
+	// 	}(shutdownChannel, errChannel, waitGroup, i)
+	// }
+	//
+	// /*
+	//  * Wait until we get the quit message
+	//  */
+	// <-errChannel
+	//
+	// log.Println("Received quit. Sending shutdown and waiting on goroutines...")
+	//
+	// for i := 0; i < maxGoRoutines; i++ {
+	// 	shutdownChannel <- true
+	// }
+	//
+	// /*
+	//  * Block until wait group counter gets to zero
+	//  */
+	// waitGroup.Wait()
+	// log.Println("Done.")
 }
-
-// package main
-//
-// import (
-//         "log"
-//         "os"
-//         "os/signal"
-//         "runtime"
-//         "sync"
-//         "syscall"
-// )
-//
-
-// }

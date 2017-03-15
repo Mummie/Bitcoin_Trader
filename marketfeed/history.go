@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/cavaliercoder/grab"
@@ -31,7 +30,7 @@ type HistoricTradeData struct {
 
 //GetHistoricTrades will concurrently download the latest 2000 trades from array of exchanges, extract and unmarshal file content into struct
 // e.g Trades -> m := map["bitfenixUSD"][]HistoricTradeData
-func GetHistoricTrades(wg *sync.WaitGroup, exchanges ...string) (trades []HistoricTradeData, err error) {
+func GetHistoricTrades(exchanges ...string) (trades []*HistoricTradeData, err error) {
 
 	var b bytes.Buffer
 	var urls []string
@@ -51,12 +50,27 @@ func GetHistoricTrades(wg *sync.WaitGroup, exchanges ...string) (trades []Histor
 	for _, exchange := range exchanges {
 		b.Reset()
 		b.Write([]byte(exchange))
-		b.WriteString(".csv")
+		b.WriteString(".csv.gz")
 		err = Unzip(b.String(), "historic_trades")
 		if err != nil {
 			return nil, err
 		}
-		tradesFile, err := os.OpenFile(b.String(), os.O_RDWR|os.O_CREATE, os.ModePerm)
+
+		if _, err := os.Stat(b.String()); err == nil {
+			err = os.Remove(b.String())
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	for _, exchange := range exchanges {
+		b.Reset()
+		b.WriteString("historic_trades/")
+		b.WriteString(".")
+		b.Write([]byte(exchange))
+		b.WriteString(".csv")
+		tradesFile, err := os.OpenFile(b.String(), os.O_RDWR, os.ModePerm)
 		if err != nil {
 			return nil, err
 		}
@@ -67,13 +81,10 @@ func GetHistoricTrades(wg *sync.WaitGroup, exchanges ...string) (trades []Histor
 		}
 	}
 
-	for _, trade := range trades {
-		log.Println(trade)
-	}
-
 	return trades, nil
 }
 
+//DownloadToFile will download historical csv data for one or more exchanges passed and download in parallel
 func DownloadToFile(urls []string) error {
 
 	// create a custom client

@@ -1,0 +1,1385 @@
+* {
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+}
+
+body {
+    font-family: 'Play', sans-serif;
+    font-size: 18px;
+    /*		background: rgb(17,18,19); /* Old browsers */
+    /*background: -moz-radial-gradient(center, ellipse cover, rgba(17,18,19,1) 0%, rgba(0,0,0,1) 100%); /* FF3.6+ */
+    /*background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(17,18,19,1)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
+    /*background: -webkit-radial-gradient(center, ellipse cover, rgba(17,18,19,1) 0%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
+    /*background: -o-radial-gradient(center, ellipse cover, rgba(17,18,19,1) 0%,rgba(0,0,0,1) 100%); /* Opera 12+ */
+    /*background: -ms-radial-gradient(center, ellipse cover, rgba(17,18,19,1) 0%,rgba(0,0,0,1) 100%); /* IE10+ */
+    /*background: radial-gradient(ellipse at center, rgba(17,18,19,1) 0%,rgba(0,0,0,1) 100%); /* W3C */
+    /*filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#111213', endColorstr='#000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    background-color: rgb(0, 0, 0);
+    color: #fff;
+    background-image: url(shodan.jpg);
+    background-repeat: no-repeat;
+}
+
+html {
+    height: 100%;
+}
+
+a {
+    color: #069;
+}
+
+a:hover {
+    color: #28b;
+}
+
+h2 {
+    margin-top: 15px;
+    font: normal 32px Futura, "Trebuchet MS", Arial, sans-serif;
+}
+
+h3 {
+    margin-left: 30px;
+    font: normal 26px Futura, "Trebuchet MS", Arial, sans-serif;
+    color: #666;
+}
+
+p {
+    margin-top: 10px;
+    font-family: Consolas, monaco, monospace
+}
+
+button {
+    font-size: 18px;
+    padding: 1px 7px;
+}
+
+input {
+    font-size: 18px;
+}
+
+#header {
+    position: relative;
+    width: 700px;
+    margin: auto;
+}
+
+#header h2 {
+    margin-left: 10px;
+    vertical-align: middle;
+    font-size: 42px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #000;
+}
+
+#content {
+    width: 880px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+#footer {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+}
+
+#tooltip {
+    position: absolute;
+    display: none;
+    border: 1px solid #4872A7;
+    padding: '2px';
+    color: #fff;
+    background-color: #000;
+    opacity: 0.80;
+    font-size: smaller;
+    cursor: move;
+}
+
+#tooltip #title {}
+
+#tooltip #type {}
+
+#ticker {
+    width: 310px;
+    height: 60px;
+    margin: 0px 0px 0px 0px;
+    float: left;
+}
+
+#centChange1 {
+    width: 180px;
+    height: 60px;
+    margin: 0px auto;
+    display: inline-block;
+    text-align: center;
+}
+
+#centChange2 {
+    width: 180px;
+    height: 60px;
+    margin: 0px auto;
+    display: inline-block;
+    text-align: center;
+}
+
+#orderticker {
+    width: 320px;
+    height: 15px;
+    margin: 0px 0px 5px 0px;
+    float: left;
+}
+
+#ordertickerleft {
+    width: 120px;
+    height: 15px;
+    margin: 0px 0px 5px 0px;
+    float: left;
+}
+
+hr {
+    background-color: #333;
+    border: 0px;
+    color: #333;
+    height: 2px;
+}
+
+#trades {
+    width: 260px;
+    height: 100px;
+    margin: 5px 5px 0px 5px;
+    float: right;
+}
+
+#orders1 {
+    width: 160px;
+    height: 700px;
+    margin: 5px 5px 0px 5px;
+    float: right;
+}
+
+#orderstd {
+    width: 27%;
+}
+
+#orders2 {
+    width: 100%;
+    height: 65%;
+    margin: 5px 5px 0px 5px;
+    float: right;
+    background-image: url(Shodan-a.gif);
+}
+
+.trowgreen {
+    clear: both;
+    margin-left: 5px;
+    width: 220px;
+    height: 15px;
+    display: block;
+    background-color: #29CB1C;
+    color: #FFFFFF;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+}
+
+.trowred {
+    clear: both;
+    margin-left: 5px;
+    width: 220px;
+    height: 15px;
+    display: block;
+    background-color: red;
+    color: #FFFFFF;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+}
+
+.trowgreennoanimate {
+    clear: both;
+    margin-left: 30px;
+    width: 220px;
+    height: 15px;
+    display: block;
+    background-color: #29CB1C;
+    color: #FFFFFF;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+}
+
+.trowrednoanimate {
+    clear: both;
+    margin-left: 30px;
+    width: 220px;
+    height: 15px;
+    display: block;
+    background-color: red;
+    color: #FFFFFF;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+}
+
+.tradecell {
+    width: 250px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0em;
+    border-top-width: 0.0em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.tradecellfirst {
+    width: 250px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0.0em;
+    border-top-width: 0.1em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.tradecelllast {
+    width: 250px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0.1em;
+    border-top-width: 0.0em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.tvol {
+    margin-left: 30px;
+    display: inline-block;
+}
+
+.tprice {
+    display: inline-block;
+    float: right;
+}
+
+.ttime {
+    display: inline-block;
+}
+
+.depthcell {
+    width: 180px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0em;
+    border-top-width: 0em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.depthcellfirst {
+    width: 180px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0.0em;
+    border-top-width: 0.1em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.depthcelllast {
+    width: 180px;
+    float: right;
+    border: 1.0em solid #555555;
+    border-left-width: 0.1em;
+    border-right-width: 0.1em;
+    border-bottom-width: 0.1em;
+    border-top-width: 0.0em;
+    line-height: 1.1em;
+    height: 1.1em;
+}
+
+.highlowcontainer {
+    width: 235px;
+    height: 15px;
+    margin: 0px 0px 5px 0px;
+    float: right;
+}
+
+.highlowcontainerRight {
+    width: 235px;
+    height: 15px;
+    margin: 0px 0px 5px 0px;
+    float: right;
+}
+
+.boughtsoldcontainer {
+    width: 210px;
+    height: 15px;
+    margin: 0px 0px 5px 0px;
+    margin-left: 0px;
+    float: left;
+}
+
+.boughtsoldratiodiv {
+    width: 100%;
+    height: 50px;
+}
+
+.timesspancontainer {
+    width: 235px;
+    float: right;
+    font: 18px/1.5em "proxima-nova", Helvetica, Arial, sans-serif;
+}
+
+.timespans {
+    /*background:#111;*/
+}
+
+.high {
+    width: 110px;
+    height: 30px;
+    margin: 0px0px 0px 0px;
+    font-size: 0.8em;
+    float: left;
+}
+
+.low {
+    width: 100px;
+    height: 30px;
+    margin: 0px0px 0px 0px;
+    font-size: 0.8em;
+    float: right;
+}
+
+.lowright {
+    width: 100px;
+    height: 30px;
+    margin: 0px0px 0px 0px;
+    font-size: 0.8em;
+    float: right;
+}
+
+.displayTick {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding-right: 5px;
+    font-weight: bold;
+    float: right;
+}
+
+.displayTick a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.displayOptions {
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    padding: 0.1px;
+    font-weight: bold;
+}
+
+.displayOptions a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.expandArrow {
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    padding: 0.1px;
+    font-weight: bold;
+}
+
+.expandArrow a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.toggleThemec {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    padding: 0.1px;
+    font-weight: bold;
+}
+
+.toggleThemec a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.displayCandleLink {
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    color: white;
+    padding: 0.1px;
+}
+
+.displayCandleLink a {
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 0.8em;
+}
+
+.mins {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+}
+
+.mins a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.mins.active a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.currency {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    color: white;
+}
+
+.currency a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.currency.active a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.exchange {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    color: white;
+}
+
+.exchange a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.exchange.active a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.depthPaneLink {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    color: white;
+}
+
+.depthPaneLink a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.depthPaneLink.active a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.shownews {
+    font-family: 'Play', sans-serif;
+    margin: 100px 50px 100px 1000px;
+    font-size: 0.8em;
+    color: white;
+}
+
+.plusDepthc {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+}
+
+.plusDepthc a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.minusDepthc {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+}
+
+.minusDepthc a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.depthspan {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+}
+
+.newsBarc {
+    padding-left: 5px;
+    min-height: 60px;
+    line-height: 15px;
+    font-size: 0.7em;
+}
+
+.optionsBarc {
+    padding-left: 30px;
+    white-space: nowrap;
+}
+
+.newsTickerc {}
+
+.newsBoxc {
+    font-family: 'Play', sans-serif;
+    color: white;
+}
+
+.newslink {
+    font-family: 'Play', sans-serif;
+    color: white;
+}
+
+.newslink a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.newslink a:hover {
+    text-decoration: underline;
+}
+
+.commentLink {
+    font-family: 'Play', sans-serif;
+    color: blue;
+}
+
+.upvotesc {
+    font-family: 'Play', sans-serif;
+    color: white;
+}
+
+.newsToggle {
+    margin-left: 10px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.ticksoundToggle {
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    line-height: normal;
+}
+
+.roundDepthToggle {
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    line-height: normal;
+}
+
+.animateToggle {
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    line-height: normal;
+}
+
+.soundAlerts {
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    line-height: normal;
+}
+
+.chromeAlerts {
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    line-height: normal;
+}
+
+.smaToggle {
+    margin-left: 10px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.emaToggle {
+    margin-left: 10px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.legendToggle {
+    margin-left: 10px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.docToggle {
+    margin-left: 5px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.logScaleToggle {
+    margin-left: 5px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.candToggle {
+    margin-left: 5px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.bidaskToggle {
+    margin-left: 5px;
+    font-family: Arial, Helmet, Freesans, sans-serif;
+    font-size: 0.6em;
+    float: left;
+}
+
+.last-trade {
+    float: right;
+    width: 300px;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+    padding: 1.0px;
+    margin: 5px 5px 5px 5px;
+    font-weight: bold;
+}
+
+.tradeTime {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: normal;
+}
+
+.tradeVol {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    padding-left: 28px;
+    padding-right: 5px;
+    font-weight: normal;
+}
+
+.depthVol {
+    color: oldlace;
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    font-weight: bold;
+    padding-right: 0px;
+    padding-left: 5px;
+}
+
+.depthVolLeft {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    font-weight: normal;
+    padding-left: 5px;
+    padding-right: 0px;
+}
+
+.tradePrice {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    padding-right: 12px;
+    font-weight: normal;
+}
+
+.depthType {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    min-width: 23px;
+    font-weight: bold;
+    padding-right: 0px;
+    padding-left: 5px;
+    color: chartreuse;
+}
+
+.depthPrice {
+    color: oldlace;
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    font-weight: bold;
+    padding-right: 0px;
+    padding-left: 5px;
+}
+
+.depthPriceLeft {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 0.70em;
+    font-weight: normal;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.depthadjust {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+    font-weight: normal;
+    padding-right: 40px;
+    padding-left: 0px;
+}
+
+.depthPaneAdjust {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: white;
+    font-weight: normal;
+    padding-right: 40px;
+    padding-left: 0px;
+}
+
+.tickerbar {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    color: #FFFFFF;
+    font-weight: normal;
+    padding-right: 0px;
+    padding-left: 30px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+}
+
+.demo-container {
+    float: left;
+    width: 100%;
+    height: 680px;
+    padding: 4px 0px 15px 0px;
+    margin: 0px auto 30px auto;
+}
+
+.optionsContainer {
+    width: 600px;
+    height: 180px;
+    border: 1px solid;
+    Margin-left: auto;
+    Margin-right: auto;
+    display: none;
+}
+
+.demo-placeholder {
+    width: 100%;
+    font-size: 14px;
+    line-height: 14px;
+    float: left;
+    margin-top: -8px;
+}
+
+.volumeplaceholder {
+    width: 100%;
+    font-size: 14px;
+    line-height: 14px;
+    float: left;
+}
+
+.legend table {
+    border-spacing: 5px;
+}
+
+span.clickMe {
+    font-size: 30px;
+}
+
+span.clickMe:hover {
+    cursor: pointer;
+    color: green;
+}
+
+section.hidden {
+    display: none;
+    position: fixed;
+}
+
+section article.popup {
+    position: relative;
+    width: 650px;
+    height: 200px;
+    background: #4A4A70;
+    color: #222;
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 5px 7px;
+    margin: 10% auto;
+}
+
+span.close {
+    text-transform: uppercase;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    text-align: right;
+    color: #ffffff;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+span.close:hover {
+    color: red;
+    cursor: pointer;
+}
+
+#cookiePolicy {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #003a91;
+    color: #fff;
+    z-index: 10000;
+    text-align: center;
+    padding: 15px 0;
+    margin: 0;
+}
+
+.overlaymessage {
+    position: absolute;
+    left: 50px;
+    top: 140px;
+    height: 70px;
+    overflow: hidden;
+    background: rgba(60, 60, 60, 0.8);
+    z-index: 10;
+}
+
+.overlaydiv {
+    z-index: 10;
+    font-size: 12px;
+    background: rgba(60, 60, 60, 0.8);
+    margin-top: 10px;
+}
+
+.menu,
+.menu ul,
+.menu li,
+.menu a {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+}
+
+.menu {
+    height: 24px;
+    width: 630px;
+    background: #4c4e5a;
+    background: -webkit-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+    background: -moz-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+    background: -o-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+    background: -ms-linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+    background: linear-gradient(top, #4c4e5a 0%, #2c2d33 100%);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.menu li {
+    position: relative;
+    list-style: none;
+    float: left;
+    display: block;
+    height: 24px;
+}
+
+
+/* Links */
+
+.menu li a {
+    display: block;
+    padding: 0 14px;
+    margin: 6px 0;
+    line-height: 14px;
+    text-decoration: none;
+    border-left: 1px solid #393942;
+    border-right: 1px solid #4f5058;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    font-size: 11px;
+    color: #f3f3f3;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .6);
+}
+
+.menu li:first-child a {
+    border-left: none;
+}
+
+.menu li:last-child a {
+    border-right: none;
+}
+
+.menu li:hover>a {
+    color: #8fde62;
+}
+
+.menu ul {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    opacity: 0;
+    background: #1f2024;
+    -webkit-border-radius: 0 0 5px 5px;
+    -moz-border-radius: 0 0 5px 5px;
+    border-radius: 0 0 5px 5px;
+    -webkit-transition: opacity .25s ease .1s;
+    -moz-transition: opacity .25s ease .1s;
+    -o-transition: opacity .25s ease .1s;
+    -ms-transition: opacity .25s ease .1s;
+    transition: opacity .25s ease .1s;
+}
+
+.menu li:hover>ul {
+    opacity: 1;
+    z-index: 100;
+}
+
+.menu ul li {
+    height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.menu li:hover>ul li {
+    height: 27px;
+    overflow: visible;
+    padding: 0;
+}
+
+.menu ul li a {
+    width: 120px;
+    padding: 9px 0 4px 20px;
+    margin: 0;
+    border: none;
+    border-bottom: 1px solid #353539;
+}
+
+.menu ul li:last-child a {
+    border: none;
+}
+
+#Title {
+    float: left;
+    font-weight: bold;
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+}
+
+#candle {
+    float: left;
+    font-family: 'Play', sans-serif;
+    padding-bottom: 5px;
+    font-size: 0.7em;
+}
+
+#notice {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    padding: 5.1px;
+}
+
+#LastUpdated {
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    padding: 0.1px;
+}
+
+#Connected {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    padding: 0.1px;
+    padding-left: 10px
+}
+
+#version {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    padding: 0.1px;
+}
+
+#showhidetick {
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    padding: 0.1px;
+}
+
+#showhideoptions {
+    font-family: 'Play', sans-serif;
+    font-size: 0.8em;
+    padding: 0.1px;
+}
+
+#toggleTheme {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+}
+
+#currency {
+    float: right;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    padding-right: 40px
+}
+
+#ordertext {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    padding-left: 5px
+}
+
+#ordertextleft {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    padding-left: 65px
+}
+
+#expandArrowText {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    padding-left: 0px
+}
+
+#centtext {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding-top: 11px;
+}
+
+#lagtext {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding-top: 0px;
+}
+
+#centval {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0px;
+}
+
+#high {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+#high2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+#trade {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+}
+
+#low {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+#low2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+#lowright {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+}
+
+#buy {
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: #29CB1C
+}
+
+#sell {
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: #29CB1C
+}
+
+#bought {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: #29CB1C
+}
+
+#sold {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: red
+}
+
+#buy2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: green
+}
+
+#sell2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+    color: red
+}
+
+#clock {
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    padding: 0.1px;
+}
+
+#connUsers {
+    font-family: 'Play', sans-serif;
+    font-size: 0.6em;
+    padding: 0.1px;
+}
+
+#lastTrade {
+    float: left;
+    font-family: 'Play', sans-serif;
+    color: #ccc;
+    font-weight: bold;
+    font-size: 2.8em;
+    padding-left: 5px
+}
+
+#tradeTime {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 3.8em;
+    padding-left: 10px;
+}
+
+#tradeVol {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 3.8em;
+    padding: 5px;
+}
+
+#tradePrice {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 3.8em;
+    padding: 5px;
+}
+
+#updateFreq {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding-left: 12px;
+    color: #FFF
+}
+
+#SoundAlerts {
+    width: 450px;
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 0.7em;
+    padding-left: 12px;
+    line-height: normal
+}
+
+#candlestick {
+    float: left;
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 15.1px;
+}
+
+#hightext {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+}
+
+#lowtext {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    padding: 0.1px;
+}
+
+#boughttext {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: #29CB1C;
+    padding: 0.1px;
+}
+
+#soldtext {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: red;
+    padding: 0.1px;
+}
+
+#buytext {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: #29CB1C;
+    padding: 0.1px;
+}
+
+#selltext {
+    font-size: 1.0em;
+    color: #29cb1c;
+    padding: 0.1px;
+}
+
+#buytext2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: green;
+    padding: 0.1px;
+}
+
+#selltext2 {
+    font-family: 'Play', sans-serif;
+    font-size: 1.0em;
+    color: red;
+    padding: 0.1px;
+}
+
+.alertcontainer2 {
+    display: none;
+    cursor: pointer;
+    border-style: solid;
+    border-color: #545454;
+    border-width: 0px;
+    background-color: red;
+    float: left;
+    height: 15px;
+    width: 550px;
+    margin-left: 45px;
+    padding: 2px;
+    position: relative;
+    margin-bottom: 0;
+}
+
+.alertcontainer {
+    overflow: hidden;
+    z-index: -10;
+    display: none;
+    width: 400px;
+    float: left;
+    height: 15px;
+    margin-left: 45px;
+    padding: 2px;
+    position: absolute;
+    margin-bottom: 0;
+    background: rgb(169, 3, 41);
+    /* Old browsers */
+    background: -moz-linear-gradient(left, rgba(169, 3, 41, 1) 0%, rgba(143, 2, 34, 1) 44%, rgba(109, 0, 25, 1) 100%);
+    /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%, rgba(169, 3, 41, 1)), color-stop(44%, rgba(143, 2, 34, 1)), color-stop(100%, rgba(109, 0, 25, 1)));
+    /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(left, rgba(169, 3, 41, 1) 0%, rgba(143, 2, 34, 1) 44%, rgba(109, 0, 25, 1) 100%);
+    /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(left, rgba(169, 3, 41, 1) 0%, rgba(143, 2, 34, 1) 44%, rgba(109, 0, 25, 1) 100%);
+    /* Opera 11.10+ */
+    background: -ms-linear-gradient(left, rgba(169, 3, 41, 1) 0%, rgba(143, 2, 34, 1) 44%, rgba(109, 0, 25, 1) 100%);
+    /* IE10+ */
+    background: linear-gradient(left, rgba(169, 3, 41, 1) 0%, rgba(143, 2, 34, 1) 44%, rgba(109, 0, 25, 1) 100%);
+    /* W3C */
+    filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#a90329', endColorstr='#6d0019', GradientType=1);
+    /* IE6-9 */
+}
+
+.menucontainer {
+    cursor: pointer;
+    border-style: solid;
+    border-color: #545454;
+    border-width: 1px;
+    background-color: #000;
+    float: right;
+    height: 15px;
+    width: 80px;
+    padding: 2px;
+    margin-right: 40px;
+    position: relative;
+    margin-bottom: 0;
+}
+
+.dropdown {
+    border-style: solid;
+    border-color: #545454;
+    border-width: 1px;
+    z-index: 1000;
+    background-color: #000;
+    height: 60px;
+    width: 250px;
+    padding-top: 20px;
+    position: absolute;
+    top: 19px;
+    right: -1px;
+    display: none;
+}
+
+.menu {
+    color: #CCC;
+    text-decoration: none;
+    z-index: 2;
+    hover: #665;
+}
+
+.menuspan {
+    height: 40px;
+    border: 2px solid #000;
+}

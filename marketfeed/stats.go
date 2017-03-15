@@ -4,9 +4,8 @@ package marketfeed
 import (
 	//"github.com/bitfinexcom/bitfinex-api-go"
 	"encoding/json"
-	"io/ioutil"
 	"log"
-	"net/http"
+	"time"
 	//"os"
 )
 
@@ -15,29 +14,44 @@ type Pair []struct {
 	Volume json.Number `json:"volume"`
 }
 
+type FundingBook struct {
+	Bids []struct {
+		Rate      float64   `json:"rate,string"`
+		Amount    float64   `json:"amount,string"`
+		Period    int64     `json:"period,string"`
+		Timestamp time.Time `json:"timestamp,string"`
+		Frr       string    `json:"frr,string"`
+	} `json:"bids"`
+	Asks []struct {
+		Rate      float64   `json:"rate,string"`
+		Amount    float64   `json:"amount,string"`
+		Period    int64     `json:"period,string"`
+		Timestamp time.Time `json:"timestamp,string"`
+		Frr       string    `json:"frr,string"`
+	} `json:"asks"`
+}
+
+type OrderBook struct {
+	Bids []struct {
+		Price     float64   `json:"price"`
+		Amount    float64   `json:"amount"`
+		Timestamp time.Time `json:"timestamp"`
+	} `json:"bids"`
+	Asks []struct {
+		Price     float64   `json:"price"`
+		Amount    float64   `json:"amount"`
+		Timestamp time.Time `json:"timestamp"`
+	} `json:"asks"`
+}
+
 func PairStats(symbol string) (p Pair, err error) {
-	req, err := http.NewRequest("GET", "https://api.bitfinex.com/v1/stats/"+symbol, nil)
+	res, err := getJSONData("https://api.bitfinex.com/v1/stats/" + symbol)
 
 	if err != nil {
-		log.Fatal(err)
+		return Pair{}, err
 	}
 
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(string(body))
-
-	err = json.Unmarshal(body, &p)
+	err = json.Unmarshal(res, &p)
 
 	if err != nil {
 		log.Println("Exception occured at marshaling pair struct data", err)
@@ -45,4 +59,39 @@ func PairStats(symbol string) (p Pair, err error) {
 	}
 
 	return p, nil
+}
+
+// GetFundingBook returns the full margin funding book
+// for Frr returns Yes if the offer is at Flash Return Rate, no if fixed rate
+func GetFundingBook(currency string) (f FundingBook, err error) {
+	res, err := getJSONData("https://api.bitfinex.com/v1/lendbook/" + currency)
+
+	if err != nil {
+		return FundingBook{}, err
+	}
+
+	err = json.Unmarshal(res, &f)
+
+	if err != nil {
+		return FundingBook{}, err
+	}
+
+	return f, nil
+}
+
+// GetOrderBook will return the full order book for the given symbol off the bitfenix exchange
+func GetOrderBook(symbol string) (o OrderBook, err error) {
+	res, err := getJSONData("https://api.bitfinex.com/v1/book/" + symbol)
+
+	if err != nil {
+		return OrderBook{}, err
+	}
+
+	err = json.Unmarshal(res, &o)
+
+	if err != nil {
+		return OrderBook{}, err
+	}
+
+	return o, nil
 }

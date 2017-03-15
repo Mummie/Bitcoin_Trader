@@ -1,0 +1,678 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta name="viewport" content="width=1480,minimal-ui" />
+    <title>BTC Shodan</title>
+
+    <link href="index.css" rel="stylesheet" type="text/css">
+    <link href="menu.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="index.js" />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="canvasjs.min.js" />
+    <script>
+        var dps = [{
+            x: 1,
+            y: 10
+        }, {
+            x: 2,
+            y: 13
+        }, {
+            x: 3,
+            y: 18
+        }, {
+            x: 4,
+            y: 20
+        }, {
+            x: 5,
+            y: 17
+        }, {
+            x: 6,
+            y: 10
+        }, {
+            x: 7,
+            y: 13
+        }, {
+            x: 8,
+            y: 18
+        }, {
+            x: 9,
+            y: 20
+        }, {
+            x: 10,
+            y: 17
+        }]; //dataPoints.
+
+        var chart = new CanvasJS.Chart("chartContainer", {
+            title: {
+                text: "Live Data"
+            },
+            axisX: {
+                title: "Axis X Title"
+            },
+            axisY: {
+                title: "Units"
+            },
+            data: [{
+                type: "line",
+                dataPoints: dps
+            }]
+        });
+
+        chart.render();
+        var xVal = dps.length + 1;
+        var yVal = 15;
+        var updateInterval = 1000;
+
+        var updateChart = function() {
+
+
+            yVal = yVal + Math.round(5 + Math.random() * (-5 - 5));
+            dps.push({
+                x: xVal,
+                y: yVal
+            });
+
+            xVal++;
+            if (dps.length > 10) {
+                dps.shift();
+            }
+
+            chart.render();
+
+            // update chart after specified time.
+
+        };
+
+        setInterval(function() {
+            updateChart()
+        }, updateInterval);
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div style="line-height:18px;font-size:18px">
+        <div id="Title" style="float:left;padding-left:5px;padding-top:5px">
+            <span>Bitcoin Ticker</span>
+        </div>
+        <div style="float:right;text-align: center;padding-top:5px;margin-right:2%">
+            <span class="clickMe" style="margin-right:10px;color:#ffffff;font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;">Options</span>
+            <span id="LastUpdated">Last Updated:</span>
+            <span id="clock">&nbsp;</span>
+            <span id="LastUpdated">seconds</span>
+
+        </div>
+    </div>
+
+    <div style="clear: both;"> </div>
+
+    <section class="hidden">
+        <article class="popup">
+            <table style="float:left;font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;padding-left: 11px;line-height:normal">
+                <tr>
+                    <td>
+                        <span class="toggleThemec"><a href="#" onclick="toggleTheme;return false"><span id="toggleTheme">&nbsp;</span>
+                        </a>
+                        </span>
+                        <span class="displayTick"><a href="#" onclick="toggleTicker;return false"><span id="showhidetick">&nbsp;</span>
+                        </a>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Time between graph updates :</td>
+                    <td>
+                        <input id="updateInterval" type="text" value="" style="font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;border-radius:20px;text-align: center; width:6em;">ms</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="ticksoundToggle">Play sound on each trade &nbsp</div>
+                    </td>
+                    <td>
+                        <div id="ticksoundToggle">
+                            <input type="checkbox" style="margin-top:1px" name="ticksoundToggle">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="roundDepthToggle">Round Bids/Asks to 0.500 &nbsp</div>
+                    </td>
+                    <td>
+                        <div id="roundDepthToggle">
+                            <input type="checkbox" style="margin-top:1px" name="roundDepthToggle">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="animateToggle">Animate Depth Movements &nbsp</div>
+                    </td>
+                    <td>
+                        <div id="animateToggle">
+                            <input type="checkbox" style="margin-top:1px" name="animateToggle">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Highlight BTC bids/asks above :</td>
+                    <td>
+                        <input id="highlightvol" type="text" value="" style="font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;border-radius:20px;text-align: center; width:6em;">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Alert if price falls below:</td>
+                    <td>
+                        <input id="lowThreshVal" type="text" value="" style="font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;border-radius:20px;text-align: center; width:6em;">
+                    </td>
+                    <td>
+                        <input type="button" id="setLowThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Set"></input>
+                        <input type="button" id="clearLowThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Clear"></input>
+                    </td>
+                    <td><span style="font-size: 1.0em" id="LowThreshSetMsg">&nbsp;</span>
+                    </td>
+                    <tr>
+                        <td>Alert if price climbs above:</td>
+                        <td>
+                            <input id="highThreshVal" type="text" value="" style="font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;border-radius:20px;text-align: center; width:6em;">
+                        </td>
+                        <td>
+                            <input type="button" id="setHighThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Set"></input>
+                            <input type="button" id="clearHighThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Clear"></input>
+                        </td>
+                        </td>
+                        <td><span style="font-size: 1.0em" id="HighThreshSetMsg">&nbsp;</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Alert if price change +/- :</td>
+                        <td>
+                            <input id="incrementThreshVal" type="text" value="" style="font-family: Arial, Helvetica, sans-serif; font-size: 0.7em;border-radius:20px;text-align: center; width:6em;">
+                        </td>
+                        <td>
+                            <input type="button" id="setIncrementThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Set"></input>
+                            <input type="button" id="clearIncrementThreshVal" style="font-size: 0.7em;width:35px;height:15px" value="Clear"></input>
+                        </td>
+                        </td>
+                        <td><span style="font-size: 1.0em" id="IncrementThreshSetMsg">&nbsp;</span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="soundAlerts" id="tickSoundAlert">Sound Alert &nbsp
+                                <input type="checkbox" style="margin-top:1px" name="ticksoundAlert" id="tickSoundAlertBox">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chromeAlerts" id="tickChromeAlert">Desktop Alert &nbsp
+                                <input type="checkbox" style="margin-top:1px" name="tickChromeAlert" id="tickChromeAlertBox">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="close">Finished</span>
+                        </td>
+                    </tr>
+            </table>
+
+            </div>
+
+
+
+        </article>
+    </section>
+
+    <div class="optionsContainer">
+
+
+
+
+    </div>
+
+    <div style="clear: both;"> </div>
+
+
+
+
+    <div class="demo-container">
+        <div id="chartContainer" style="height: 300px; width:100%;" />
+
+        <table cellpadding='5' style='width: 99%;height:100%;'>
+            <tr>
+                <td style='width: 70%;'>
+                    <div id="candle" style="font-size:11px;">
+
+                        <ul class="menu">
+
+                            <li>
+                                <a href="#">Dashboards&#x25BC;</a>
+
+                                <ul>
+                                    <li><a href="/combined/">Combined</a>
+                                    </li>
+                                    <li><a href="/dashboard/">Grid</a>
+                                    </li>
+                                    <li><a href="/price/">Ticker</a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="#">Network&#x25BC;</a>
+                                <ul>
+                                    <li><a href="/networkstats/">Network Stats</a>
+                                    </li>
+                                    <li><a href="/miningpools/">Mining Pools</a>
+                                    </li>
+                                    <li><a href="/latestblocks/">Latest Blocks</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?mempoolsize">Mempool size</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?miningpools">Mining Pools</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?nodeversions">Peer Versions</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?feestats">Fee Stats</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?feedist">Fee Distribution</a>
+                                    </li>
+                                    <li><a href="http://charts.bitcointicker.co/?protocolsupport">Protocol Support</a>
+                                    </li>
+                                </ul>
+
+
+                            </li>
+                            <li><a href="/mobile/">Mobile</a>
+                            </li>
+                            <li>
+                                <a href="#">News&#x25BC;</a>
+
+                                <ul>
+                                    <li><a href="/news/">Archive</a>
+                                        <li>
+                                            <li><a href="/news/comments/">Comments</a>
+                                            </li>
+
+                                </ul>
+
+                                </li>
+
+                                <li><a href="http://charts.bitcointicker.co">Charts</a>
+                                </li>
+
+                                <li>
+                                    <a href="#">Maps&#x25BC;</a>
+                                    <ul>
+                                        <li><a href="/map/">Live Connections</a>
+                                        </li>
+                                        <li><a href="/transactions/">Live Transactions</a>
+                                        </li>
+                                        <li><a href="/transactions/globe/">3D Globe</a>
+                                        </li>
+
+                                    </ul>
+
+                                </li>
+                        </ul>
+
+                        </ul>
+                    </div>
+                    <div class="newsBarc" id="newsBar" style="float:left;clear:left;padding-top:2px;display: none;">
+                        <span class="newsBoxc" id="newsBox" style='font-weight:bold;'>&nbsp</span>
+                        <span class="newslink"><a href="http://bitcointicker.co" id="newslink" target="_blank"><span class="newsTickerc" id="newsTicker">&nbsp</span>
+                        </a>
+                        </span>
+                        <span id="upvotes" class="upvotesc">UpVotes 0</span>
+                        <span id="commentLinkid" class="commentLink"><a href="http://bitcointicker.co" target="_blank" id="commentLink">Discuss</a></span>
+
+                    </div>
+                </td>
+
+                <td style='width: 1%;display:none;' id='ordertdspacerleft'>
+                </td>
+
+                <td style='width: 11%;' id='changeExchangesandcur'>
+                    <div style="text-align: center;">
+
+                        <div style='font: 15px/1.5em "proxima-nova", Helvetica, Arial, sans-serif'>
+                            <ul class="timespans">
+                                <span class="exchange active"><a href="#" onclick="changeExchange(&#x27;stamp&#x27;);return false">bitstamp</a>&nbsp;</span>|
+                                <!--<span class="exchange"><a href="#" onclick="changeExchange(&#x27;mtgox&#x27;);return false">mtgox</a>&nbsp;</span>|-->
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;btcchina&#x27;);return false">btcchina</a>&nbsp;</span>|
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;btce&#x27;);return false">btce</a>&nbsp;</span>|
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;huobi&#x27;);return false">huobi</a>&nbsp;</span>|
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;bitfinex&#x27;);return false">bitfinex</a>&nbsp;</span>|
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;kraken&#x27;);return false">kraken</a>&nbsp;</span>|
+                                <span class="exchange"><a href="#" onclick="changeExchange(&#x27;okcoin&#x27;);return false">okcoin</a>&nbsp;</span>
+                            </ul>
+                        </div>
+
+
+                    </div>
+                </td>
+                <td style='width: 15%;'>
+                    <div class='timesspancontainer'>
+                        <ul class="timespans">
+                            <span class="mins"><a href="#" onclick="changeGraphHist(10);return false">10m</a>&nbsp;</span>|
+                            <span class="mins active"><a href="#" onclick="changeGraphHist(60);return false">1hr</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="changeGraphHist(180);return false">3hr</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(720);return false">12hr</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(1440);return false">24hr</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(4320);return false">3day</a>&nbsp;</span>
+                            <br>
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(10080);return false">7day</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(43200);return false">30day</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(131487);return false">3Mth</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(262974);return false">6Mth</a>&nbsp;</span>|
+                            <span class="mins"><a href="#" onclick="hourlyGraphHist(1576800);return false">AllTime</a>&nbsp;</span>
+                        </ul>
+
+                    </div>
+                </td>
+
+
+
+            </tr>
+            <tr>
+                <td style='width: 70%;min-width:400px; height:100%;'>
+                    <div style="float:left;height:15px;padding:0px;margin:0px;">
+                        <div id="alerts" class="alertcontainer">
+                            <img id="alertimg" style="margin-top:-3.1px;display:none;" height="20" width="20" alt="" src="alert.png">
+                            <span id="alerttext" style="display:none"></span>
+                        </div>
+                    </div>
+                    <div class="menucontainer">
+                        <span style="font-size:0.7em;font-weight:bold;width:100%;display:inline-block;text-align:center">Graph Options</span>
+                        <div class="dropdown">
+
+                            <div style="float:left;height:100%;width:50%">
+
+                                <div class="newsToggle" id="newsToggle">
+                                    <input type="checkbox" name="toggleNews">&nbspShow News</input>
+                                </div>
+                                <div class="smaToggle" id="smaToggle">
+                                    <input type="checkbox" name="toggleSMA">&nbspShow SMA</input>
+                                </div>
+                                <div class="emaToggle" id="emaToggle">
+                                    <input type="checkbox" name="toggleEMA">&nbspShow EMA</input>
+                                </div>
+                                <div class="legendToggle" id="legendToggle">
+                                    <input type="checkbox" name="toggleLegend">&nbspShow Legend</input>
+                                </div>
+                            </div>
+                            <div style="float:right;height:100%;width:50%">
+                                <div class="docToggle" id="docToggle">
+                                    <input type="checkbox" name="toggleDOC">&nbspDonchian Channel</input>
+                                </div>
+                                <div class="logScaleToggle" id="logScaleToggle">
+                                    <input type="checkbox" name="logScaleToggle">&nbspLog Scale</input>
+                                </div>
+                                <div class="candToggle" id="candToggle">
+                                    <input type="checkbox" name="candDOC">&nbspCandlestick</input>
+                                </div>
+                                <div class="bidaskToggle" id="bidaskToggle">
+                                    <input type="checkbox" name="bidaskToggle">&nbspBid/Ask Lines</input>
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div id="placeholder" class="demo-placeholder" style='width: 100%; height:340px;'>
+                        <input id="input" />
+                        <div id="chartContainer" style="height: 300px; width:100%;" />
+                    </div>
+
+                    <div id="tickerBarDiv" class="tickerbar">
+                        <span id="StampUSDTickText">stamp$:&nbsp;</span><span id="StampUSDTicker">&nbsp;</span>&nbsp;
+                        <span style="display:none" id="USDTickText">gox$:&nbsp;</span><span style="display:none" id="USDTicker">&nbsp;</span>
+                        <span id="BtceUSDTickText">btce$:&nbsp;</span><span id="BtceUSDTicker">&nbsp;</span>&nbsp;
+                        <span id="bitfinexUSDTickText">bfnx$:&nbsp;</span><span id="BitfUSDTicker">&nbsp;</span>&nbsp;
+                        <span id="krakenEURTickText">kr&#8364;:&nbsp;</span><span id="KraEURTicker">&nbsp;</span>&nbsp;
+                        <span style="display:none" id="GBPTickText">gox&#163;:&nbsp;</span><span style="display:none" id="GBPTicker">&nbsp;</span>
+                        <span style="display:none" id="EURTickText">gox&#8364;:&nbsp;</span><span style="display:none" id="EURTicker">&nbsp;</span>
+                        <span id="CNYTickText">btcchina&#20803;:&nbsp;</span><span id="CNYTicker">&nbsp;</span>
+                        <span id="huobiCNYTickText">huobi&#20803;:&nbsp;</span><span id="huobiCNYTicker">&nbsp;</span>&nbsp;
+                        <span id="okcoinCNYTickText">okcoin&#20803;:&nbsp;</span><span id="okcoinCNYTicker">&nbsp;</span>&nbsp;
+                        <span style="display:none" id="AUDTickText">goxAU$:&nbsp;</span><span style="display:none" id="AUDTicker">&nbsp;</span>
+                    </div>
+
+                    <div id="depthChange" class="depthadjust">
+                        <span class="plusDepthc" id="plusDepth"><a href="#" onclick="plusDepth;return false">+</a></span>&nbsp;/
+                        <span class="minusDepthc" id="minusDepth"><a href="#" onclick="minusDepth;return false">-</a></span>
+                    </div>
+                    <div id="placeholder2" class="volumeplaceholder" style='width: 100%; height:280px;'>
+                    </div>
+                    <div id="depthPaneToggle" class="depthPaneAdjust">
+                        <ul class="depthPaneToggleui">
+                            <span id="CUMULATIVE" class="depthPaneLink active"><a href="#" onclick="toggleDepthType(&#x27;cumulative&#x27;);return false">Cumulative</a>&nbsp;</span>|
+                            <span id="DEPTHSUM" class="depthPaneLink"><a href="#" onclick="toggleDepthType(&#x27;sum&#x27;);return false">Sum</a>&nbsp;</span>|
+                            <span id="DEPTHBOUGHTSOLD" class="depthPaneLink"><a id="BOUGHTSOLDA" style="visibility:hidden" href="#" onclick="toggleDepthType(&#x27;boughtsold&#x27;);return false">Bought / Sold</a>&nbsp;</span>
+                        </ul>
+                    </div>
+                    <div id="tickerBarDiv" class="tickerbar">
+                        <span>60 min vol:&nbsp;</span>
+                        <span id="exch0">&nbsp;</span><span id="vol0">&nbsp;</span>&nbsp;
+                        <span id="exch1">&nbsp;</span><span id="vol1">&nbsp;</span>&nbsp;
+                        <span id="exch2">&nbsp;</span><span id="vol2">&nbsp;</span>&nbsp;
+                        <span id="exch3">&nbsp;</span><span id="vol3">&nbsp;</span>&nbsp;
+                        <span id="exch4">&nbsp;</span><span id="vol4">&nbsp;</span>&nbsp;
+
+                    </div>
+
+                </td>
+
+
+                <td style='width: 155px;display:none;' id="orderleft">
+
+                    <div id="orders1">
+                        <div class='boughtsoldcontainer'>
+                            <div class='high'>
+                                <span id="boughttext">Bought: </span><span id="bought">&nbsp;</span>
+                            </div>
+                            <div class='low'>
+                                <span id="soldtext">Sold: </span><span id="sold">&nbsp;</span>
+                            </div>
+
+                        </div>
+
+                        <div id="centChange1">
+                            <div id="boughtsoldratio" class='boughtsoldratiodiv'>
+
+
+                            </div>
+
+                            <span id="lagtext2" style="width: 100%" ;>&nbsp;<span id="lagval2">&nbsp;</span>
+                            <span id="centtext2" style="width: 100%" ;>&nbsp;<span id="centval2">&nbsp;</span>
+                            <span id="centsign2"></span></span>
+
+
+                        </div>
+                        <div id="ordertickerleft">
+                            <span id="ordertextleft">Bids</span>
+                        </div>
+
+
+                        <div class="depthcellfirst" id="depthcell1left">
+                            <span class="depthType" id="depthBid1left"></span><span class="depthVolLeft" id="depthVol1left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice1left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell2left">
+                            <span class="depthType" id="depthBid2left"></span><span class="depthVolLeft" id="depthVol2left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice2left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell3left">
+                            <span class="depthType" id="depthBid3left"></span><span class="depthVolLeft" id="depthVol3left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice3left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell4left">
+                            <span class="depthType" id="depthBid4left"></span><span class="depthVolLeft" id="depthVol4left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice4left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell5left">
+                            <span class="depthType" id="depthBid5left"></span><span class="depthVolLeft" id="depthVol5left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice5left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell6left">
+                            <span class="depthType" id="depthBid6left"></span><span class="depthVolLeft" id="depthVol6left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice6left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell7left">
+                            <span class="depthType" id="depthBid7left"></span><span class="depthVolLeft" id="depthVol7left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice7left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell8left">
+                            <span class="depthType" id="depthBid8left"></span><span class="depthVolLeft" id="depthVol8left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice8left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell9left">
+                            <span class="depthType" id="depthBid9left"></span><span class="depthVolLeft" id="depthVol9left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice9left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell10left">
+                            <span class="depthType" id="depthBid10left"></span><span class="depthVolLeft" id="depthVol10left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice10left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell11left">
+                            <span class="depthType" id="depthBid11left"></span><span class="depthVolLeft" id="depthVol11left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice11left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell12left">
+                            <span class="depthType" id="depthBid12left"></span><span class="depthVolLeft" id="depthVol12left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice12left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell13left">
+                            <span class="depthType" id="depthBid13left"></span><span class="depthVolLeft" id="depthVol13left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice13left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell14left">
+                            <span class="depthType" id="depthBid14left"></span><span class="depthVolLeft" id="depthVol14left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice14left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell15left">
+                            <span class="depthType" id="depthBid15left"></span><span class="depthVolLeft" id="depthVol15left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice15left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell16left">
+                            <span class="depthType" id="depthBid16left"></span><span class="depthVolLeft" id="depthVol16left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice16left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell17left">
+                            <span class="depthType" id="depthBid17left"></span><span class="depthVolLeft" id="depthVol17left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice17left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell18left">
+                            <span class="depthType" id="depthBid18left"></span><span class="depthVolLeft" id="depthVol18left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice18left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell19left">
+                            <span class="depthType" id="depthBid19left"></span><span class="depthVolLeft" id="depthVol19left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice19left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell20left">
+                            <span class="depthType" id="depthBid20left"></span><span class="depthVolLeft" id="depthVol20left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice20left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell21left">
+                            <span class="depthType" id="depthBid21left"></span><span class="depthVolLeft" id="depthVol21left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice21left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell22left">
+                            <span class="depthType" id="depthBid22left"></span><span class="depthVolLeft" id="depthVol22left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice22left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell23left">
+                            <span class="depthType" id="depthBid23left"></span><span class="depthVolLeft" id="depthVol23left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice23left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell24left">
+                            <span class="depthType" id="depthBid24left"></span><span class="depthVolLeft" id="depthVol24left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice24left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell25left">
+                            <span class="depthType" id="depthBid25left"></span><span class="depthVolLeft" id="depthVol25left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice25left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell26left">
+                            <span class="depthType" id="depthBid26left"></span><span class="depthVolLeft" id="depthVol26left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice26left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell27left">
+                            <span class="depthType" id="depthBid27left"></span><span class="depthVolLeft" id="depthVol27left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice27left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell28left">
+                            <span class="depthType" id="depthBid28left"></span><span class="depthVolLeft" id="depthVol28left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice28left">&nbsp;</span>
+                        </div>
+                        <div class="depthcell" id="depthcell29left">
+                            <span class="depthType" id="depthBid29left"></span><span class="depthVolLeft" id="depthVol29left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice29left">&nbsp;</span>
+                        </div>
+                        <div class="depthcelllast" id="depthcell30left">
+                            <span class="depthType" id="depthBid30left"></span><span class="depthVolLeft" id="depthVol30left">&nbsp;</span><span class="depthPriceLeft" id="depthPrice30left">&nbsp;</span>
+                        </div>
+                    </div>
+                </td>
+
+
+                <td id="orderstd">
+
+                    <div id="orders2">
+                        <div class='highlowcontainer'>
+
+                            <div class='low'>
+                                <span id="lowtext"></span><span id="low2">&nbsp;</span>
+                            </div>
+                        </div>
+
+                        <div id="centChange2">
+                            <span id="centtext" style="width: 100%" ;>Change:&nbsp;<span id="centval">&nbsp;</span>
+                            <span id="centsign">%</span></span>
+
+
+                        </div>
+
+                        <div id="orderticker">
+
+                            <span class="expandArrow"><a href="#" onclick="toggleOrderExpand;return false"><span id="expandArrowText">&nbsp;</span>
+                            </a>
+                            </span>
+                            <span id="ordertext">Orders</span>
+                        </div>
+                    </div>
+                </td>
+
+
+                <td style='width: 15%;'>
+                    <div class="trades" id="trades">
+                        <div class='highlowcontainer'>
+                            <div class='high'>
+                                <span id="hightext">High: </span><span id="high">&nbsp;</span>
+                            </div>
+                            <div class='low'>
+                                <span id="lowtext">Low: </span><span id="low">&nbsp;</span>
+                            </div>
+                        </div>
+
+                        <div id="ticker">
+                            <div id="lastTrade">&nbsp;</div>
+                        </div>
+
+                        <div class='highlowcontainerRight'>
+
+                            <div class='high'>
+                                <span id="buytext">Bid&nbsp;&nbsp;: </span><span id="buy">&nbsp;</span>
+                            </div>
+
+                            <div class='lowright'>
+                                <span id="selltext">Ask&nbsp;: </span><span id="sell">&nbsp;</span>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                    <div class="tradeBox" style="float:right;margin-right:20px;width:230px;height:510px;overflow:hidden;border: 0.1em solid #555555;">
+
+                        <div class="traderows">
+
+                        </div>
+
+                    </div>
+
+
+
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+
+    <div style="clear: both;"> </div>
+    <div id="cookiePolicy" style="display:none">Cookies are used to save your preferences. By continuing to use this site we'll assume you are happy to receive them. Click this banner to accept.</a>
+    </div>
+</body>
+
+</html>

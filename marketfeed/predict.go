@@ -15,10 +15,13 @@ account for trading commissions/fees
 account for liquidity issues
 paper trade*/
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"runtime"
 	"time"
+
+	"github.com/Knetic/govaluate"
 )
 
 // Change to
@@ -79,3 +82,42 @@ func MultiPI(samples int) float64 {
 
 	return total / float64(cpus)
 }
+
+//ARIMA stands for Autoregressive Integrated Moving Average. It's a type of time series model which outputs a prediction and prediction interval given a time series data input. Mathematically, an ARIMA(p,d,q) looks like:
+//yt=(∑i=1pαiyt−i)+(∑i=1qβiϵt−i)+ϵ
+//Intuitively, this model predicts a y value at time t, given its near correlations to its past terms (until lag p) and its near correlations to its past residuals (until lag q).
+// PredictBitcoinVolatility will predict the volatility by the called tick data at given time
+func (tick *TickerData) PredictBitcoinVolatility() (float64, error) {
+	var difficulty float64
+	res, err := getJSONData("https://blockchain.info/q/getdifficulty")
+	if err != nil {
+		return 0, err
+	}
+
+	err = json.Unmarshal(res, &difficulty)
+
+	if err != nil {
+		return 0, err
+	}
+
+	expression, err := govaluate.NewEvaluableExpression("(Price) / (diff * 2^32) / 3600")
+	if err != nil {
+		return 0, err
+	}
+
+	parameters := make(map[string]interface{}, 8)
+	parameters["Price"] = tick.LastPrice
+	parameters["diff"] = difficulty
+
+	prediction, err := expression.Evaluate(parameters)
+	if err != nil {
+		return 0, err
+	}
+
+	return prediction.(float64), nil
+
+}
+
+// tell program to assume Gaussian distribution. dont program parameters but leave them unknown and computer afterwards
+// get sample vector and process. probability density function of Gaussian distribution
+// do the math, where u will be maximum likelihood for the mean and o will be maximum likelihood for standard deviation
