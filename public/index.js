@@ -14,16 +14,19 @@ if (window.attachEvent) {
     window.attachEvent('onload', () => {
         loadSocket(tickerMsg);
         loadSocket(tradesMsg);
+        loadInternalWebsocket();
     }, false);
 } else if (window.addEventListener) {
     window.addEventListener('load', () => {
         loadSocket(tickerMsg);
         loadSocket(tradesMsg);
+        loadInternalWebsocket();
     }, false);
 } else {
     document.addEventListener('load', () => {
         loadSocket(tickerMsg);
         loadSocket(tradesMsg);
+        loadInternalWebsocket();
     }, false);
 }
 
@@ -36,10 +39,8 @@ function loadSocket(msg) {
 
     ws.onmessage = res => {
         const data = JSON.parse(res.data);
-        console.log(data);
         if (['hb', 'te'].indexOf(data[1]) <= -1) {
             chanID = data[0];
-            console.log(data[1]);
             const s = JSON.parse(msg);
             switch (s.channel) {
                 case 'ticker':
@@ -48,7 +49,6 @@ function loadSocket(msg) {
                     break;
                 case 'trades':
                     obj = parseTradesToObject(data[2], chanID);
-                    console.log(obj);
                     displayTradeDataToPage(obj);
                     break;
 
@@ -73,6 +73,25 @@ function loadSocket(msg) {
     }
 }
 
+function loadInternalWebsocket() {
+  const w = new WebSocket('ws://localhost:5001/events/ws');
+
+  w.onmessage = res => {
+    const data = JSON.parse(res.data);
+    console.log(res);
+  }
+
+  w.onopen = () => {
+    w.send(JSON.stringify("hello"));
+  }
+
+  w.onerror = err => {
+    console.log(err);
+    w.close();
+  }
+
+}
+
 function parseWebsocketToObject(data, chanID) {
     const curTime = getCurrentDate();
     const jsonData = { bid: data[1][0], time: curTime, chanID, ask: data[1][3], price: data[1][2], low: data[1][9], high: data[1][8], change: data[1][5] };
@@ -82,7 +101,6 @@ function parseWebsocketToObject(data, chanID) {
 function parseTradesToObject(data, chanID) {
     const curTime = getCurrentDate();
     const jsonData = { MTS: data[1], amount: data[2], price: data[3], chanID, time: curTime };
-    console.log(jsonData);
     return jsonData;
 }
 
@@ -90,7 +108,8 @@ function displayTradeDataToPage(jsonData) {
     const trade = document.createElement('div');
     trade.className = 'depthcell';
     trade.innerHTML = `<span class="depthType" id="depthAsk1">Ask:</span><span class="depthPrice" >${jsonData.price}</span><span class="depthVol">${jsonData.amount}</span>`;
-    document.getElementById('orders2').appendChild(trade);
+    const orders = document.getElementById('orders2');
+    orders.insertBefore(trade, orders.children[3]);
 }
 
 function getCurrentDate() {

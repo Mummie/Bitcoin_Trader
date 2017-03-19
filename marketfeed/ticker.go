@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -72,6 +73,12 @@ type BTCChinaTick struct {
 	} `json:"ticker"`
 }
 
+type BiddingDataList struct {
+	HighestBid float64
+	BidDiff    float64
+	Time       string
+}
+
 type TickerSocket struct {
 	Bid             float64 `json:"bid,string"`
 	BidSize         float64 `json:"bidsize,string"`
@@ -98,6 +105,27 @@ func getJSONData(url string) (body []byte, err error) {
 	}
 
 	resp, err := netClient.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	return body, nil
+}
+
+func postJSONData(url string, r io.Reader) (body []byte, err error) {
+	var netClient = &http.Client{
+		Timeout: time.Second * 15,
+	}
+
+	resp, err := netClient.Post(url, "application/json", r)
 
 	if err != nil {
 		return nil, err
@@ -186,9 +214,16 @@ func RunTicker(symbol string) (tickData []*TickerData, err error) {
 			if err != nil {
 				return nil, err
 			}
-
 			tick.Predict = predict
-			fmt.Printf("\rBid: %+v Prediction: %+v", tick.Bid, tick.Predict)
+
+			r := tick.CalculateOrderBookRegression()
+
+			avg, err := CalculateMarketAveragePrice(tick.LastPrice, tick.Volume)
+			if err != nil {
+				return nil, err
+			}
+
+			fmt.Printf("\rBid: %+v Prediction: %+v Regression: %+v Average Market Price: %f", tick.Bid, tick.Predict, r, avg.Average)
 
 			tickData = append(tickData, tick)
 		}

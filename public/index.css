@@ -167,9 +167,10 @@ hr {
 
 #orders2 {
     width: 100%;
-    height: 65%;
+    max-height: 400px;
     margin: 5px 5px 0px 5px;
     float: right;
+    overflow: hidden;
     background-image: url(Shodan-a.gif);
 }
 

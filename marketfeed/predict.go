@@ -17,70 +17,15 @@ paper trade*/
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
-	"runtime"
-	"time"
+	"net/url"
+	"strconv"
 
 	"github.com/Knetic/govaluate"
 )
 
-// Change to
-func PI(samples int) float64 {
-	var inside int = 0
-
-	for i := 0; i < samples; i++ {
-		x := rand.Float64()
-		y := rand.Float64()
-		if (x*x + y*y) < 1 {
-			inside++
-		}
-	}
-
-	ratio := float64(inside) / float64(samples)
-
-	return ratio * 4
-}
-
-func runSimulation() {
-	fmt.Println("Our value of Pi after 100 runs:\t\t\t", PI(100))
-	fmt.Println("Our value of Pi after 1,000 runs:\t\t", PI(1000))
-	fmt.Println("Our value of Pi after 10,000 runs:\t\t", PI(10000))
-	fmt.Println("Our value of Pi after 100,000 runs:\t\t", PI(100000))
-	fmt.Println("Our value of Pi after 1,000,000 runs:\t\t", PI(1000000))
-	fmt.Println("Our value of Pi after 10,000,000 runs:\t\t", PI(10000000))
-	fmt.Println("Our value of Pi after 100,000,000 runs:\t\t", PI(100000000))
-}
-
-func MultiPI(samples int) float64 {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	rand.Seed(time.Now().UnixNano())
-
-	cpus := runtime.NumCPU()
-
-	threadSamples := samples / cpus
-	results := make(chan float64, cpus)
-
-	for j := 0; j < cpus; j++ {
-		go func() {
-			var inside int
-			r := rand.New(rand.NewSource(time.Now().UnixNano()))
-			for i := 0; i < threadSamples; i++ {
-				x, y := r.Float64(), r.Float64()
-
-				if x*x+y*y <= 1 {
-					inside++
-				}
-			}
-			results <- float64(inside) / float64(threadSamples) * 4
-		}()
-	}
-
-	var total float64
-	for i := 0; i < cpus; i++ {
-		total += <-results
-	}
-
-	return total / float64(cpus)
+type AverageMarketPrice struct {
+	Average float64
+	Rate    float64
 }
 
 //ARIMA stands for Autoregressive Integrated Moving Average. It's a type of time series model which outputs a prediction and prediction interval given a time series data input. Mathematically, an ARIMA(p,d,q) looks like:
@@ -117,6 +62,58 @@ func (tick *TickerData) PredictBitcoinVolatility() (float64, error) {
 	return prediction.(float64), nil
 
 }
+
+// CalculateOrderBookRegression will calculate order book regression where vbid is total volume people are willing to buy in the top x orders and vask is the total volume people are willing to sell in the top x orders based on current order book data
+func (tick *TickerData) CalculateOrderBookRegression() float64 {
+	expression, _ := govaluate.NewEvaluableExpression("(vbid - vask) / (vbid + vask)")
+	parameters := make(map[string]interface{}, 8)
+	parameters["vbid"] = tick.Bid
+	parameters["vask"] = tick.Ask
+	r, _ := expression.Evaluate(parameters)
+	return r.(float64)
+}
+
+// CalculateMarketAveragePrice will take an amount of BTC to find and return the average market price for by the specified rate argument
+func CalculateMarketAveragePrice(amount float64, rate float64) (a AverageMarketPrice, err error) {
+	baseURL := "https://api.bitfinex.com/v2/calc/trade/avg"
+	params := url.Values{}
+	params.Add("symbol", "tBTCUSD")
+	params.Add("amount", FloatToString(amount))
+	params.Add("rate_limit", FloatToString(rate))
+
+	finalURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+	resp, err := postJSONData(finalURL, nil)
+	if err != nil {
+		return AverageMarketPrice{}, err
+	}
+
+	data := make([]float64, 2)
+	err = json.Unmarshal(resp, &data)
+	if err != nil {
+		return AverageMarketPrice{}, err
+	}
+	a.Average = data[0]
+	a.Rate = data[1]
+	return a, nil
+}
+
+// FloatToString will convert a type float64 to a string with precision point 6
+func FloatToString(input_num float64) string {
+	return strconv.FormatFloat(input_num, 'f', 6, 64)
+}
+
+// The trading strategy is very
+// simple: at each time, we either maintain position
+// of +1 Bitcoin, 0 Bitcoin or −1 Bitcoin. At each
+// time instance, we predict the average price movement
+// over the 10 seconds interval, say ∆p, using Bayesian
+// regression (precise details explained below) - if ∆p > t,
+// a threshold, then we buy a bitcoin if current bitcoin
+// position is ≤ 0; if ∆p < −t, then we sell a bitcoin if
+// current position is ≥ 0; else do nothing. The choice
+// of time steps when we make trading decisions as
+// mentioned above are chosen carefully by looking at
+// the recent trends
 
 // tell program to assume Gaussian distribution. dont program parameters but leave them unknown and computer afterwards
 // get sample vector and process. probability density function of Gaussian distribution

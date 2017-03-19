@@ -9,6 +9,7 @@ import
 
 	"github.com/Bitcoin_Trader/marketfeed"
 	"github.com/Bitcoin_Trader/server"
+	"github.com/Bitcoin_Trader/trade"
 )
 
 //"os"
@@ -38,7 +39,7 @@ type Config struct {
 // log.Println(pair)
 
 const (
-	maxGoRoutines = 3
+	maxGoRoutines = 8
 )
 
 func main() {
@@ -47,13 +48,14 @@ func main() {
 
 	tickChan, errT := make(chan []*marketfeed.TickerData), make(chan error)
 	chinaTick := make(chan *marketfeed.BTCChinaTick)
-
+	blockchain, errBC := make(chan *marketfeed.BlockChain), make(chan error)
+	var highBids []marketfeed.BiddingDataList
 	go server.RunHTTPServer()
-
-	for tasks := 0; tasks <= 3; tasks++ {
+	for tasks := 0; tasks < 4; tasks++ {
 		// go marketfeed.RunTickerSocket()
 
 		go func() {
+			trade.ConnectToMarginAccount()
 
 			tickData, err := marketfeed.RunTicker("btcUSD")
 			if err != nil {
@@ -69,6 +71,17 @@ func main() {
 
 			tickChan <- tickData
 			chinaTick <- chinatick
+		}()
+
+		go func() {
+
+			s, err := marketfeed.GetBlockchainStats()
+			if err != nil {
+				errBC <- err
+				return
+			}
+
+			blockchain <- s
 		}()
 
 		// go func() {
@@ -89,6 +102,8 @@ func main() {
 				fmt.Println("HISTORICAL DATA ERROR: ", err)
 			case tick := <-chinaTick:
 				fmt.Printf("BTC CHINA: %+v", tick)
+			case stats := <-blockchain:
+				fmt.Printf("Blockchain Stats: %+v", stats)
 			case ticker := <-tickChan:
 				var highestBid float64
 				var h float64
@@ -108,7 +123,12 @@ func main() {
 
 					hDiff = highestBid - h
 				}
-				fmt.Printf("\rHIGHEST BID: %+v HIGH BID DIFF: %f", highestBid, hDiff)
+				highBid := marketfeed.BiddingDataList{
+					highestBid,
+					hDiff,
+					time.Now().Add(-1 * time.Minute).Format("15:04:05"),
+				}
+				highBids = append(highBids, highBid)
 
 			case err := <-errT:
 				fmt.Println("TICKER ERROR: ", err)
@@ -117,6 +137,9 @@ func main() {
 		}
 		time.Sleep(5 * time.Second)
 		tasks++
+	}
+	for _, v := range highBids {
+		fmt.Printf("key[%v]", v)
 	}
 
 	// runtime.GOMAXPROCS(int(float64(runtime.NumCPU()) * 1.25))

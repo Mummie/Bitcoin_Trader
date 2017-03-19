@@ -1,0 +1,13 @@
+{
+  "keys": {
+    "publish_key": "pub-c-afa3032c-65ec-4836-adba-56523a9f5326",
+    "subscribe_key": "sub-c-b3fef8d4-fc5e-11e6-8240-0619f8945a4f",
+    "secret_key": "demsec-c-YTQyNTEzZGEtN2EwOS00MTFkLWFhNTEtOGFjNjY4ZTIyNzBho",
+    "auth_key": ""
+  },
+  "stocks_channel_group": "bitcoinblast",
+  "chat_channel": "chat",
+  "history_channel": "MSFT",
+  "port" : "80",
+  "grant_ttl": 1
+}

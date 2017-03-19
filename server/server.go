@@ -61,7 +61,7 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/send" {
+	if r.URL.Path == "/events/ws" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Println(err)
@@ -148,10 +148,12 @@ func websocketHandler(ws *websocket.Conn) {
 		case tick := <-ticker_chan:
 			jsonData, _ := json.Marshal(tick)
 			str := string(jsonData)
-			in = fmt.Sprintf("{\"tick\": %s, \"time\": \"%v\"}\n\n", str, time.Now())
-			if err := websocket.Message.Send(ws, in); err != nil {
+			hub.messages <- str
+			if err := websocket.JSON.Send(ws, tick); err != nil {
+				hub.removeClient <- messageChannel
 				i = 1440
 			}
+
 		case msg := <-messageChannel:
 			jsonData, _ := json.Marshal(msg)
 			str := string(jsonData)
@@ -161,7 +163,7 @@ func websocketHandler(ws *websocket.Conn) {
 				hub.removeClient <- messageChannel
 				i = 1440
 			}
-		case <-time.After(time.Second * 60):
+		case <-time.After(time.Second * 20):
 			in = fmt.Sprintf("{\"str\": \"No Data\"}\n\n")
 			if err := websocket.Message.Send(ws, in); err != nil {
 				hub.removeClient <- messageChannel
