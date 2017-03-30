@@ -5,11 +5,12 @@ import
 
 (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Bitcoin_Trader/marketfeed"
 	"github.com/Bitcoin_Trader/server"
-	"github.com/Bitcoin_Trader/trade"
+	"github.com/DannyBen/quandl"
 )
 
 //"os"
@@ -39,23 +40,27 @@ type Config struct {
 // log.Println(pair)
 
 const (
-	maxGoRoutines = 8
+	maxGoRoutines = 1
 )
 
 func main() {
+
+	quandl.APIKey = os.Getenv("QUANDL_API_KEY")
 
 	resc, errc := make(chan []*marketfeed.HistoricTradeData), make(chan error)
 
 	tickChan, errT := make(chan []*marketfeed.TickerData), make(chan error)
 	chinaTick := make(chan *marketfeed.BTCChinaTick)
+	bitstampExchangeRateTimeSeries, bitstampErr := make(chan *quandl.SymbolResponse), make(chan error)
 	blockchain, errBC := make(chan *marketfeed.BlockChain), make(chan error)
+	// cbTickChan, errC := make(chan []*marketfeed.CoinbaseTicker), make(chan error)
+
 	var highBids []marketfeed.BiddingDataList
 	go server.RunHTTPServer()
-	for tasks := 0; tasks < 4; tasks++ {
+	for tasks := 0; tasks < 3; tasks++ {
 		// go marketfeed.RunTickerSocket()
 
 		go func() {
-			trade.ConnectToMarginAccount()
 
 			tickData, err := marketfeed.RunTicker("btcUSD")
 			if err != nil {
@@ -72,6 +77,16 @@ func main() {
 			tickChan <- tickData
 			chinaTick <- chinatick
 		}()
+		// clear messages by linebreak every minute
+		ticker := time.NewTicker(60 * time.Second)
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					fmt.Println()
+				}
+			}
+		}()
 
 		go func() {
 
@@ -83,6 +98,26 @@ func main() {
 
 			blockchain <- s
 		}()
+
+		go func() {
+			t, err := marketfeed.GetHistoricBitstampExchangeRate()
+			if err != nil {
+				bitstampErr <- err
+				return
+			}
+
+			bitstampExchangeRateTimeSeries <- t
+		}()
+
+		// go func() {
+		// 	tickData, err := marketfeed.RunCoinBaseTicker(os.Getenv("CB_SECRET"), os.GetEnv("CB_KEY"))
+		// 	if err != nil {
+		// 		errC <- err
+		// 		return
+		// 	}
+
+		// 	cbTickChan <- tickChan
+		// }()
 
 		// go func() {
 		// 	trades, err := marketfeed.GetHistoricTrades("bitfinexUSD")
@@ -104,6 +139,14 @@ func main() {
 				fmt.Printf("BTC CHINA: %+v", tick)
 			case stats := <-blockchain:
 				fmt.Printf("Blockchain Stats: %+v", stats)
+			// case t := <-cbTickChan:
+			// 	fmt.Printf("Finished Coinbase Socket Process with %+v", t)
+			// case err := <-errC:
+			// 	fmt.Println("COINBASE TICKER ERR: ", err)
+			case bitstampTimeSeries := <-bitstampExchangeRateTimeSeries:
+				fmt.Printf("Bitstamp Exchange Rate Time Series: %+v ", bitstampTimeSeries)
+			case err := <-bitstampErr:
+				fmt.Printf("Bitstamp Time Series Error: %+v", err)
 			case ticker := <-tickChan:
 				var highestBid float64
 				var h float64
@@ -142,72 +185,4 @@ func main() {
 		fmt.Printf("key[%v]", v)
 	}
 
-	// runtime.GOMAXPROCS(int(float64(runtime.NumCPU()) * 1.25))
-	//
-	// log.Println("Starting application...")
-	//
-	// log.Println("Starting Bitcoin Trader...")
-	//
-	// /*
-	//  * When SIGINT or SIGTERM is caught write to the quitChannel
-	//  */
-	// quitChannel := make(chan os.Signal)
-	// errChannel := make(chan error, 1)
-	// signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
-	//
-	// shutdownChannel := make(chan bool)
-	// waitGroup := &sync.WaitGroup{}
-	//
-	// waitGroup.Add(maxGoRoutines)
-	//
-	// /*
-	//  * Create a goroutine that does imaginary work
-	//  */
-	// for i := 0; i < maxGoRoutines; i++ {
-	// 	go func(shutdownChannel chan bool, errChannel chan error, waitGroup *sync.WaitGroup, id int) {
-	// 		log.Println("Starting work goroutine...")
-	// 		//defer waitGroup.Done()
-	//
-	// 		for {
-	// 			/*
-	// 			 * Listen on channels for message.
-	// 			 */
-	// 			select {
-	// 			case _ = <-shutdownChannel:
-	// 				log.Printf("Received shutdown on goroutine %d\n", id)
-	// 				return
-	// 			case _ = <-errChannel:
-	// 				log.Println(errChannel)
-	// 				return
-	//
-	// 			default:
-	// 			}
-	//
-	// 			// Do some hard work here!
-	// 			_, err := marketfeed.GetHistoricTrades(waitGroup, "bitfinexUSD", "okcoinCNY", "coinbaseUSD")
-	//
-	// 			if err != nil {
-	// 				errChannel <- err
-	// 			}
-	//
-	// 		}
-	// 	}(shutdownChannel, errChannel, waitGroup, i)
-	// }
-	//
-	// /*
-	//  * Wait until we get the quit message
-	//  */
-	// <-errChannel
-	//
-	// log.Println("Received quit. Sending shutdown and waiting on goroutines...")
-	//
-	// for i := 0; i < maxGoRoutines; i++ {
-	// 	shutdownChannel <- true
-	// }
-	//
-	// /*
-	//  * Block until wait group counter gets to zero
-	//  */
-	// waitGroup.Wait()
-	// log.Println("Done.")
 }

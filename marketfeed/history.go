@@ -3,6 +3,7 @@ package marketfeed
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/DannyBen/quandl"
 	"github.com/cavaliercoder/grab"
 	"github.com/gocarina/gocsv"
 )
@@ -26,6 +28,41 @@ type HistoricTradeData struct {
 	Time   time.Time `csv:"unixtime"`
 	Price  float64   `csv:"price"`
 	Amount float64   `csv:"amount"`
+}
+
+type TimeSeriesExchangeRate struct {
+	Dataset struct {
+		ID                  int         `json:"id"`
+		DatasetCode         string      `json:"dataset_code"`
+		DatabaseCode        string      `json:"database_code"`
+		Name                string      `json:"name"`
+		Description         string      `json:"description"`
+		RefreshedAt         time.Time   `json:"refreshed_at"`
+		NewestAvailableDate string      `json:"newest_available_date"`
+		OldestAvailableDate string      `json:"oldest_available_date"`
+		ColumnNames         []string    `json:"column_names"`
+		Frequency           string      `json:"frequency"`
+		Type                string      `json:"type"`
+		Premium             bool        `json:"premium"`
+		Limit               interface{} `json:"limit"`
+		Transform           interface{} `json:"transform"`
+		ColumnIndex         interface{} `json:"column_index"`
+		StartDate           string      `json:"start_date"`
+		EndDate             string      `json:"end_date"`
+		Data                []struct {
+			Date           string  `json:"0"`
+			Open           float64 `json:"1"`
+			High           float64 `json:"2"`
+			Low            float64 `json:"3"`
+			Close          float64 `json:"4"`
+			VolumeBTC      float64 `json:"5"`
+			VolumeUSD      float64 `json:"6"`
+			Weighted_Price float64 `json:"7"`
+		} `json:"data"`
+		Collapse   interface{} `json:"collapse"`
+		Order      interface{} `json:"order"`
+		DatabaseID int         `json:"database_id"`
+	} `json:"dataset"`
 }
 
 //GetHistoricTrades will concurrently download the latest 2000 trades from array of exchanges, extract and unmarshal file content into struct
@@ -165,15 +202,6 @@ func DownloadToFile(urls []string) error {
 
 	defer t.Stop()
 
-	// for _, file := range files {
-	// 	var filename = file[:len(file)-3]
-	// 	fmt.Printf("Extracing %s into %s path", file, filename)
-	// 	err = Unzip(file, filename)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-
 	return nil
 }
 
@@ -190,12 +218,11 @@ func Unzip(src, dest string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer r.Close()
-	// defer func() {
-	// 	if err := r.Close(); err != nil {
-	// 		panic(err)
-	// 	}
-	// }()
+	defer func() {
+		if err := r.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	if _, err := os.Stat(dest); os.IsNotExist(err) {
 		os.MkdirAll(dest, 0755)
@@ -210,44 +237,53 @@ func Unzip(src, dest string) (err error) {
 
 	_, err = io.Copy(writer, r)
 	log.Println("Copied zip contents to csv file")
-	if err != nil {
-		return err
-	}
-	return nil
 
+	return err
 }
 
-// func FanInDownloads(files []string) (results []Result) {
-// 	c := make(chan Result)
+func GetHistoricBitcoinVolatility() (v []VolatilityEstimate, err error) {
+	res, err := getJSONData("https://btcvol.info/all")
+	if err != nil {
+		return nil, err
+	}
 
-// 	for i := 0; i < len(files); i++ {
-// 		fileName := files[i]
-// 		go func() { c <- nexusDownload(fileName)() }()
-// 	}
+	err = json.Unmarshal(res, &v)
 
-// 	timeout := time.After(11000 * time.Millisecond)
-// 	for i := 0; i < len(files); i++ {
-// 		select {
-// 		case result := <-c:
-// 			fmt.Println("FINISHED: " + result)
-// 			results = append(results, result)
+	if err != nil {
+		return nil, err
+	}
 
-// 		case <-timeout:
-// 			fmt.Println("timed out")
-// 			return
-// 		}
-// 	}
-// 	return
-// }
+	return v, nil
+}
 
-// func nexusDownload(artifactId string) Download {
-// 	return func() Result {
-// 		duration := rand.Intn(10000)
-// 		fmt.Println(fmt.Sprintf("Will start downloading %s... It might take %d", artifactId, duration))
-// 		time.Sleep(time.Duration(duration) * time.Millisecond)
-// 		return Result(fmt.Sprintf("%s downloaded in %d", artifactId, duration))
-// 	}
-// }
+func GetHistoricBitfenixUSDExchangeRates() (b *quandl.SymbolResponse, err error) {
+	b, err = quandl.GetSymbol("BITFENIX/BTCUSD", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func GetHistoricBitstampUSDExchangeRates() (b *quandl.SymbolResponse, err error) {
+	b, err = quandl.GetSymbol("BITSTAMP/USD", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func GetHistoricBitstampExchangeRate() (b *quandl.SymbolResponse, err error) {
+	b, err = quandl.GetSymbol("BCHARTS/BITSTAMPUSD", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(b)
+
+	return b, nil
+}
 
 // >- below is a func for single downloading a file concurrently by downloading pieces
 // func Test() {

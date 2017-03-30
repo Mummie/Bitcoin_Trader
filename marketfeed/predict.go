@@ -32,22 +32,22 @@ type AverageMarketPrice struct {
 //yt=(∑i=1pαiyt−i)+(∑i=1qβiϵt−i)+ϵ
 //Intuitively, this model predicts a y value at time t, given its near correlations to its past terms (until lag p) and its near correlations to its past residuals (until lag q).
 // PredictBitcoinVolatility will predict the volatility by the called tick data at given time
-func (tick *TickerData) PredictBitcoinVolatility() (float64, error) {
+func (tick *TickerData) PredictBitcoinVolatility() error {
 	var difficulty float64
 	res, err := getJSONData("https://blockchain.info/q/getdifficulty")
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	err = json.Unmarshal(res, &difficulty)
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	expression, err := govaluate.NewEvaluableExpression("(Price) / (diff * 2^32) / 3600")
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	parameters := make(map[string]interface{}, 8)
@@ -56,25 +56,31 @@ func (tick *TickerData) PredictBitcoinVolatility() (float64, error) {
 
 	prediction, err := expression.Evaluate(parameters)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return prediction.(float64), nil
+	tick.VolumePrediction = prediction.(float64)
+
+	return nil
 
 }
 
 // CalculateOrderBookRegression will calculate order book regression where vbid is total volume people are willing to buy in the top x orders and vask is the total volume people are willing to sell in the top x orders based on current order book data
-func (tick *TickerData) CalculateOrderBookRegression() float64 {
+func (tick *TickerData) CalculateOrderBookRegression() error {
 	expression, _ := govaluate.NewEvaluableExpression("(vbid - vask) / (vbid + vask)")
 	parameters := make(map[string]interface{}, 8)
 	parameters["vbid"] = tick.Bid
 	parameters["vask"] = tick.Ask
-	r, _ := expression.Evaluate(parameters)
-	return r.(float64)
+	r, err := expression.Evaluate(parameters)
+	if err != nil {
+		return err
+	}
+	tick.OrderBookRegression = r.(float64)
+	return nil
 }
 
 // CalculateMarketAveragePrice will take an amount of BTC to find and return the average market price for by the specified rate argument
-func CalculateMarketAveragePrice(amount float64, rate float64) (a AverageMarketPrice, err error) {
+func (tick *TickerData) CalculateMarketAveragePrice(amount float64, rate float64) error {
 	baseURL := "https://api.bitfinex.com/v2/calc/trade/avg"
 	params := url.Values{}
 	params.Add("symbol", "tBTCUSD")
@@ -84,17 +90,17 @@ func CalculateMarketAveragePrice(amount float64, rate float64) (a AverageMarketP
 	finalURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 	resp, err := postJSONData(finalURL, nil)
 	if err != nil {
-		return AverageMarketPrice{}, err
+		return err
 	}
 
 	data := make([]float64, 2)
 	err = json.Unmarshal(resp, &data)
 	if err != nil {
-		return AverageMarketPrice{}, err
+		return err
 	}
-	a.Average = data[0]
-	a.Rate = data[1]
-	return a, nil
+	tick.AverageMarketPrice = data[0]
+	tick.Rate = data[1]
+	return nil
 }
 
 // FloatToString will convert a type float64 to a string with precision point 6

@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/bitfinexcom/bitfinex-api-go"
-
 	"time"
+
+	"golang.org/x/net/websocket"
 	//"os"
 )
 
@@ -46,7 +44,10 @@ type TickerData struct {
 	High      float64 `json:"high,string"`
 	Volume    float64 `json:"volume,string"`
 	// Timestamp Timestamp `json:"timestamp,string"`
-	Predict float64 `json:"-"`
+	VolumePrediction    float64 `json:"-"`
+	AverageMarketPrice  float64 `json:"-"`
+	OrderBookRegression float64 `json:"-"`
+	Rate                float64 `json:"-"`
 }
 
 type Trade struct {
@@ -97,6 +98,14 @@ type WebsocketChannel struct {
 	Channel   string `json:"channel"`
 	Error     string `json:"msg"`
 	ErrorCode int64  `json:"code"`
+}
+
+type CoinbaseTicker struct {
+	Time    time.Time `json:"time"`
+	TradeID int       `json:"trade_id"`
+	Price   string    `json:"price"`
+	Size    string    `json:"size"`
+	Side    string    `json:"side"`
 }
 
 func getJSONData(url string) (body []byte, err error) {
@@ -155,25 +164,50 @@ func GetTickData(symbol string) (tick *TickerData, err error) {
 		return nil, err
 	}
 
+	err = tick.PredictBitcoinVolatility()
+	if err != nil {
+		return nil, err
+	}
+
+	err = tick.CalculateOrderBookRegression()
+	if err != nil {
+		return nil, err
+	}
+	err = tick.CalculateMarketAveragePrice(tick.LastPrice, tick.Volume)
+	if err != nil {
+		return nil, err
+	}
+
 	return tick, nil
 
 }
 
 // GetTradesData will return a slice of Trade data by the given day
-func GetTradesData(symbol string) (trade []Trade, err error) {
+func GetTradesData(symbol string) (trade []Trade, cbtrade []CoinbaseTicker, err error) {
 
 	res, err := getJSONData("https://api.bitfinex.com/v1/trades/" + symbol)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = json.Unmarshal(res, &trade)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return trade, nil
+	res, err = getJSONData("https://api-public.sandbox.gdax.com/products/BTC-USD/trades")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = json.Unmarshal(res, &cbtrade)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return trade, cbtrade, nil
 }
 
 func GetBTCChinaTickData() (t *BTCChinaTick, err error) {
@@ -192,7 +226,7 @@ func GetBTCChinaTickData() (t *BTCChinaTick, err error) {
 
 //RunTicker will gather tick data by the time tick defined in processing and store the data inside a slice when timedout is reached
 func RunTicker(symbol string) (tickData []*TickerData, err error) {
-	timeout := time.After(60 * time.Second)
+	timeout := time.After(300 * time.Second)
 	processing := time.Tick(10 * time.Microsecond)
 	// Keep trying until we're timed out or got a result or got an error
 	for {
@@ -210,57 +244,56 @@ func RunTicker(symbol string) (tickData []*TickerData, err error) {
 				return nil, err
 			}
 
-			predict, err := tick.PredictBitcoinVolatility()
-			if err != nil {
-				return nil, err
-			}
-			tick.Predict = predict
-
-			r := tick.CalculateOrderBookRegression()
-
-			avg, err := CalculateMarketAveragePrice(tick.LastPrice, tick.Volume)
-			if err != nil {
-				return nil, err
-			}
-
-			fmt.Printf("\rBid: %+v Prediction: %+v Regression: %+v Average Market Price: %f", tick.Bid, tick.Predict, r, avg.Average)
+			fmt.Printf("\rBid: %+v Prediction: %+v Regression: %+v Rate: %+v Average Market Price: %f", tick.Bid, tick.VolumePrediction, tick.OrderBookRegression, tick.Rate, tick.AverageMarketPrice)
 
 			tickData = append(tickData, tick)
 		}
 	}
 }
 
-func RunTickerSocket() chan []float64 {
-	c := bitfinex.NewClient()
-
-	// in case your proxy is using a non valid certificate set to TRUE
-	c.WebSocketTLSSkipVerify = false
-
-	err := c.WebSocket.Connect()
+func RunCoinBaseTicker(secret string, key string) (trades []*CoinbaseTicker, err error) {
+	ws, err := websocket.Dial("wss://ws-feed.gdax.com", "", "")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	defer c.WebSocket.Close()
-	//
-	// book_btcusd_chan := make(chan []float64)
-	// book_ltcusd_chan := make(chan []float64)
-	// trades_chan := make(chan []float64)
-	ticker_chan := make(chan []float64)
 
-	// c.WebSocket.AddSubscribe(bitfinex.CHAN_BOOK, bitfinex.BTCUSD, book_btcusd_chan)
-	// c.WebSocket.AddSubscribe(bitfinex.CHAN_BOOK, bitfinex.LTCUSD, book_ltcusd_chan)
-	// c.WebSocket.AddSubscribe(bitfinex.CHAN_TRADE, bitfinex.BTCUSD, trades_chan)
-	c.WebSocket.AddSubscribe(bitfinex.CHAN_TICKER, bitfinex.BTCUSD, ticker_chan)
+	var c CoinbaseTicker
 
-	// go listen(book_btcusd_chan, "BOOK BTCUSD:")
-	// go listen(book_ltcusd_chan, "BOOK LTCUSD:")
-	// go listen(trades_chan, "TRADES BTCUSD:")
-
-	err = c.WebSocket.Subscribe()
-	if err != nil {
-		log.Fatal(err)
+	subscribe := map[string]string{
+		"type":        "subscribe",
+		"product_ids": "BTC-USD",
+		"signature":   secret,
+		"key":         key,
+		"passphrase":  "!9-9r2-M5ufW7avR",
 	}
-	return ticker_chan
+
+	if err = websocket.JSON.Send(ws, subscribe); err != nil {
+		return nil, err
+	}
+
+	timeout := time.After(60 * time.Second)
+	processing := time.Tick(10 * time.Microsecond)
+	// Keep trying until we're timed out or got a result or got an error
+	for {
+		select {
+		// Got a timeout! fail with a timeout error
+		case <-timeout:
+			if len(trades) <= 0 {
+				return nil, errors.New("Timed out with empty tick response")
+			}
+			return trades, nil
+		// Got a tick, we should check on doSomething()
+		case <-processing:
+			if err = websocket.JSON.Receive(ws, &c); err != nil {
+				return nil, err
+			}
+
+			fmt.Printf("\n\r Coinbase Price: %+v Side: %+v Size: %+v", c.Price, c.Side, c.Size)
+
+			trades = append(trades, &c)
+
+		}
+	}
 }
 
 func listen(in chan []float64, message string) {

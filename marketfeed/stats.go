@@ -14,6 +14,12 @@ type Pair []struct {
 	Volume json.Number `json:"volume"`
 }
 
+type VolatilityEstimate struct {
+	Date             time.Time `json:"Date"`
+	Volatility       float64   `json:"Volatility"`
+	Volatility60Days float64   `json:"Volatility60"`
+}
+
 type FundingBook struct {
 	Bids []struct {
 		Rate      float64   `json:"rate,string"`
@@ -94,4 +100,20 @@ func GetOrderBook(symbol string) (o OrderBook, err error) {
 	}
 
 	return o, nil
+}
+
+func GetLatestBTCVolatilityEstimate() (v VolatilityEstimate, err error) {
+	res, err := getJSONData("https://btcvol.info/latest")
+
+	if err != nil {
+		return VolatilityEstimate{}, err
+	}
+
+	err = json.Unmarshal(res, &v)
+
+	if err != nil {
+		return VolatilityEstimate{}, err
+	}
+
+	return v, nil
 }
