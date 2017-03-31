@@ -3,3 +3,8 @@ import:
 - package: github.com/toorop/go-bittrex
 - package: github.com/ajph/bitstamp-go
 - package: github.com/gorilla/websocket
+- package: github.com/Knetic/govaluate
+  version: 2.3.0
+- package: github.com/bitfinexcom/bitfinex-api-go
+  subpackages:
+  - v1
